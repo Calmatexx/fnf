@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <title>FNF Neo Ritmo PRO</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    body {
+      min-height: 100vh;
+      background: radial-gradient(circle at top, #1bffff 0, #2e026d 45%, #050816 100%);
+      color: #f5f5f5;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    #container {
+      width: 100%;
+      max-width: 1100px;
+      padding: 16px;
+    }
+
+    /* MENÚ FUTURISTA */
+    #menu {
+      background: linear-gradient(135deg, rgba(0, 0, 0, 0.85), rgba(40, 0, 80, 0.9));
+      border-radius: 24px;
+      box-shadow: 0 0 25px rgba(0, 255, 255, 0.35);
+      padding: 24px;
+      border: 1px solid rgba(0, 255, 255, 0.25);
+      backdrop-filter: blur(12px);
+      display: grid;
+      gap: 20px;
+    }
+
+    #menu h1 {
+      text-align: center;
+      font-size: 1.9rem;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      text-shadow: 0 0 15px rgba(0, 255, 255, 0.8);
+      margin-bottom: 6px;
+    }
+
+    #menu h2 {
+      text-align: center;
+      font-size: 0.9rem;
+      font-weight: 400;
+      color: #d0d0ff;
+    }
+
+    .menu-section {
+      border-radius: 18px;
+      border: 1px solid rgba(0, 255, 255, 0.2);
+      padding: 14px 16px;
+      background: radial-gradient(circle at top left, rgba(0, 255, 255, 0.12), rgba(10, 5, 40, 0.9));
+    }
+
+    .menu-section h3 {
+      font-size: 1rem;
+      margin-bottom: 8px;
+      color: #aaf6ff;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .menu-row {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .toggle-group {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      border-radius: 999px;
+      padding: 8px 14px;
+      border: 1px solid rgba(0, 255, 255, 0.4);
+      background: rgba(10, 10, 40, 0.8);
+      cursor: pointer;
+      font-size: 0.86rem;
+      transition: transform 0.1s, box-shadow 0.1s, background 0.1s;
+      user-select: none;
+    }
+
+    .chip.active {
+      background: linear-gradient(135deg, #00e0ff, #a855f7);
+      color: #050816;
+      box-shadow: 0 0 15px rgba(0, 255, 255, 0.7);
+      transform: translateY(-1px);
+    }
+
+    select {
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid rgba(0, 255, 255, 0.5);
+      background: rgba(5, 5, 30, 0.9);
+      color: #e5e7eb;
+      font-size: 0.9rem;
+      flex-grow: 1;
+      outline: none;
+    }
+
+    label {
+      font-size: 0.86rem;
+      color: #c7d2fe;
+    }
+
+    #playButton {
+      margin-top: 4px;
+      width: 100%;
+      padding: 12px;
+      border-radius: 14px;
+      border: none;
+      cursor: pointer;
+      background: linear-gradient(135deg, #00ffd1, #4f46e5);
+      color: #050816;
+      font-weight: 700;
+      font-size: 1rem;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+      box-shadow: 0 0 18px rgba(0, 255, 209, 0.8);
+      transition: transform 0.1s, box-shadow 0.1s;
+    }
+
+    #playButton:active {
+      transform: scale(0.97);
+      box-shadow: 0 0 8px rgba(0, 255, 209, 0.45);
+    }
+
+    #menu-footer {
+      font-size: 0.78rem;
+      text-align: center;
+      color: #a5b4fc;
+      opacity: 0.9;
+    }
+
+    /* GAME LAYOUT */
+    #game {
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      gap: 10px;
+      background: radial-gradient(circle at top, rgba(0, 255, 255, 0.05), rgba(0, 0, 0, 0.92));
+      border-radius: 24px;
+      padding: 10px;
+      border: 1px solid rgba(0, 255, 255, 0.25);
+      box-shadow: 0 0 25px rgba(56, 189, 248, 0.35);
+    }
+
+    #hud {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.9rem;
+      padding: 4px 6px 2px;
+    }
+
+    #hud span {
+      background: rgba(15, 23, 42, 0.85);
+      padding: 5px 9px;
+      border-radius: 999px;
+      border: 1px solid rgba(56, 189, 248, 0.5);
+      font-size: 0.8rem;
+    }
+
+    #backToMenu {
+      border-radius: 999px;
+      border: 1px solid rgba(248, 113, 113, 0.8);
+      background: rgba(15, 23, 42, 0.9);
+      color: #fecaca;
+      padding: 5px 9px;
+      font-size: 0.8rem;
+      cursor: pointer;
+    }
+
+    #backToMenu:disabled,
+    #backToMenu.locked {
+      opacity: 0.4;
+      cursor: not-allowed;
+    }
+
+    /* ÁREA DEL JUEGO */
+    #gameArea {
+      position: relative;
+      overflow: hidden;
+      border-radius: 18px;
+      border: 1px solid rgba(56, 189, 248, 0.5);
+      background: #020617;
+      min-height: 550px;
+    }
+
+    #bgLayer {
+      position: absolute;
+      inset: 0;
+      overflow: hidden;
+      z-index: 0;
+      transition: transform 0.15s ease-out;
+    }
+
+    #bgLayer iframe,
+    #bgLayer img,
+    #bgLayer video {
+      width: 100%;
+      height: 100%;
+      border: none;
+      object-fit: cover;
+    }
+
+    #overlayShade {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(circle at top, transparent, rgba(3, 7, 18, 0.86));
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    /* EFECTO BEAT AL HACER PERFECT */
+    .beat {
+      animation: beatPulse 0.35s ease-out;
+    }
+
+    @keyframes beatPulse {
+      0% { transform: scale(1); opacity: 0.85; }
+      40% { transform: scale(1.03); opacity: 1; }
+      100% { transform: scale(1); opacity: 0.9; }
+    }
+
+    /* CARRILES INVISIBLES */
+    #lanesWrapper {
+      position: absolute;
+      left: 0;
+      right: 0;
+      bottom: 55px;
+      height: 320px;
+      display: flex;
+      justify-content: center;
+      align-items: flex-end;
+      gap: 22px;
+      padding: 0 16px;
+      z-index: 2;
+      pointer-events: none;
+    }
+
+    .lane {
+      flex: none;
+      width: 120px;
+      height: 320px; /* más alto para que las flechas empiecen casi arriba del video */
+      position: relative;
+      overflow: visible;
+      background: transparent !important;
+      border: none !important;
+    }
+
+    .hit-zone {
+      position: absolute;
+      bottom: 18px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70%;
+      height: 28px;
+      border-radius: 999px;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+    }
+
+    .lane-label {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translate(-50%, 0);
+      font-size: 1rem;
+      font-weight: 700;
+      text-shadow: 0 0 12px rgba(255,255,255,0.9);
+      pointer-events: none;
+    }
+
+    .arrow {
+      position: absolute;
+      width: 50px;
+      height: 50px;
+      left: 50%;
+      transform: translateX(-50%);
+      border-radius: 999px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.4rem;
+      font-weight: 900;
+      background: rgba(59, 130, 246, 0.9);
+      border: 1px solid rgba(191, 219, 254, 0.9);
+      box-shadow: 0 0 12px rgba(59, 130, 246, 0.9);
+      color: #e5e7eb;
+      pointer-events: none;
+    }
+
+    .arrow.up    { background: rgba(59, 130, 246, 0.95); }
+    .arrow.down  { background: rgba(34, 197, 94, 0.95); }
+    .arrow.left  { background: rgba(249, 115, 22, 0.95); }
+    .arrow.right { background: rgba(236, 72, 153, 0.95); }
+
+    /* EFECTO FNF PRO - FEEDBACK TEXTO */
+    .feedback {
+      position: absolute;
+      top: 38%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 3rem;
+      font-weight: 900;
+      color: #fff;
+      text-shadow: 0 0 20px #fff, 0 0 35px #0ff;
+      opacity: 0;
+      pointer-events: none;
+      animation: pop 0.6s ease-out forwards;
+      z-index: 4;
+    }
+
+    @keyframes pop {
+      0% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+      30% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+      100% { opacity: 0; transform: translate(-50%, -50%) scale(1.4); }
+    }
+
+    /* Cámara vibra en combos PRO */
+    .shake {
+      animation: shakeAnim 0.3s ease-in-out;
+    }
+
+    @keyframes shakeAnim {
+      0% { transform: translate(3px, -3px); }
+      25% { transform: translate(-3px, 3px); }
+      50% { transform: translate(3px, 3px); }
+      75% { transform: translate(-3px, -3px); }
+      100% { transform: translate(0, 0); }
+    }
+
+    /* Flecha hit efecto */
+    .arrowHit {
+      transform: translateX(-50%) scale(1.4);
+      box-shadow: 0 0 24px #00ff9d;
+    }
+
+    #touchControls {
+      display: flex;
+      justify-content: center;
+      gap: 10px;
+      padding: 8px 4px 2px;
+      flex-wrap: wrap;
+    }
+
+    .touch-btn {
+      flex: 1 1 70px;
+      max-width: 120px;
+      padding: 8px 6px;
+      border-radius: 14px;
+      border: 1px solid rgba(56, 189, 248, 0.75);
+      background: radial-gradient(circle at top, rgba(56, 189, 248, 0.4), rgba(15, 23, 42, 0.95));
+      color: #f9fafb;
+      font-size: 1rem;
+      font-weight: 700;
+      text-align: center;
+      cursor: pointer;
+      user-select: none;
+      box-shadow: 0 0 12px rgba(56, 189, 248, 0.7);
+      transition: transform 0.08s, box-shadow 0.08s;
+    }
+
+    .touch-btn:active {
+      transform: translateY(1px) scale(0.97);
+      box-shadow: 0 0 6px rgba(56, 189, 248, 0.5);
+    }
+
+    #pcHint {
+      text-align: center;
+      font-size: 0.8rem;
+      color: #c4b5fd;
+      margin-top: 2px;
+    }
+
+    @media (max-width: 768px) {
+      #menu {
+        padding: 18px;
+      }
+      #menu h1 {
+        font-size: 1.5rem;
+      }
+      #gameArea {
+        min-height: 480px;
+      }
+      #lanesWrapper {
+        gap: 12px;
+        bottom: 45px;
+        height: 260px;
+      }
+      .lane {
+        width: 90px;
+        height: 260px;
+      }
+      .arrow {
+        width: 42px;
+        height: 42px;
+        font-size: 1.2rem;
+      }
+      .feedback {
+        font-size: 2.2rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div id="container">
+    <!-- MENÚ FUTURISTA -->
+    <section id="menu">
+      <div>
+        <h1>FNF • NEO RITMO PRO</h1>
+        <h2>Elige modo, elige música y machuca las flechas al ritmo 🎵</h2>
+      </div>
+
+      <div class="menu-section">
+        <h3>1. Elige modo de juego</h3>
+        <div class="menu-row">
+          <label>Dispositivo:</label>
+          <div class="toggle-group" id="modeGroup">
+            <div class="chip active" data-mode="android">Android (Celular)</div>
+            <div class="chip" data-mode="pc">PC (Computadora)</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-section">
+        <h3>2. Tipo de música</h3>
+        <div class="menu-row">
+          <label>¿Cómo quieres ver la canción?</label>
+          <div class="toggle-group" id="musicTypeGroup">
+            <div class="chip active" data-type="video">Música + Video</div>
+            <div class="chip" data-type="image">Música + Imagen de fondo</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="menu-section">
+        <h3>3. Canción</h3>
+        <div class="menu-row">
+          <label for="trackSelect">Elige una canción (las bloqueadas se desbloquean con puntos):</label>
+          <select id="trackSelect"></select>
+        </div>
+      </div>
+
+      <div class="menu-section">
+        <h3>4. Empezar la batalla</h3>
+        <p style="font-size:0.84rem; color:#e5e7eb; margin-bottom:6px;">
+          Cuando le des a <strong>Jugar</strong>, el video se reproducirá y empezarán a caer flechas desde arriba.
+        </p>
+        <p style="font-size:0.8rem; color:#a5b4fc; margin-bottom:4px;">
+          Si haces <strong>10 000 puntos o más</strong>, desbloqueas la siguiente canción.
+        </p>
+        <button id="playButton">Jugar</button>
+      </div>
+
+      <div id="menu-footer">
+        Tip: en algunos celulares puede que el video no se auto-reproduzca por políticas del navegador.
+      </div>
+    </section>
+
+    <!-- JUEGO -->
+    <section id="game" class="hidden">
+      <div id="hud">
+        <span id="hudMode">Modo: -</span>
+        <span id="hudSong">Canción: -</span>
+        <span id="hudScore">Puntuación: 0</span>
+        <span id="hudCombo">Combo: 0</span>
+        <button id="backToMenu">Volver al menú</button>
+      </div>
+
+      <div id="gameArea">
+        <div id="bgLayer"></div>
+        <div id="overlayShade"></div>
+
+        <div id="lanesWrapper">
+          <div class="lane" data-lane="left">
+            <div class="hit-zone"></div>
+            <div class="lane-label">←</div>
+          </div>
+          <div class="lane" data-lane="down">
+            <div class="hit-zone"></div>
+            <div class="lane-label">↓</div>
+          </div>
+          <div class="lane" data-lane="up">
+            <div class="hit-zone"></div>
+            <div class="lane-label">↑</div>
+          </div>
+          <div class="lane" data-lane="right">
+            <div class="hit-zone"></div>
+            <div class="lane-label">→</div>
+          </div>
+        </div>
+      </div>
+
+      <div id="touchControls">
+        <button class="touch-btn" data-dir="left">←</button>
+        <button class="touch-btn" data-dir="down">↓</button>
+        <button class="touch-btn" data-dir="up">↑</button>
+        <button class="touch-btn" data-dir="right">→</button>
+      </div>
+      <div id="pcHint"></div>
+    </section>
+  </div>
+
+  <script>
+    // ========= CONFIG =========
+    const ARROW_SIZE = 50;
+    const HIT_ZONE_HEIGHT = 32;
+    const HIT_ZONE_BOTTOM = 18;
+    const SPAWN_SPEED = 220;         // px/seg (caen)
+    const SPAWN_INTERVAL = 800;      // ms
+    const UNLOCK_SCORE = 10000;      // puntos para desbloquear siguiente canción
+    const SONG_DURATION_MS = 60000;  // 1 min simulado
+
+    // ========= CANCIONES VIDEO =========
+    const videoTracks = [
+      { id: "vid1", name: "Tema Especial Calmatex - Trap / Dembow", videoUrl: "https://www.youtube.com/embed/SwqOjKUIz-E?rel=0", locked: false },
+      { id: "vid2", name: "Alan Walker - Spectre - Electrónica", videoUrl: "https://www.youtube.com/embed/lf7TVbYwJ7s?rel=0", locked: true },
+      { id: "vid3", name: "FLOW - HERO - Kibou no Uta - Anime", videoUrl: "https://www.youtube.com/embed/3aevyrmqbY0?rel=0", locked: true },
+      { id: "vid4", name: "Joost Klein - Europapa - Eurovision", videoUrl: "https://www.youtube.com/embed/gT2wY0DjYGo?rel=0", locked: true },
+      { id: "vid5", name: "Entre Nosotros - Reggaetón", videoUrl: "https://www.youtube.com/embed/FMA8X18-W1Q?rel=0", locked: true },
+      { id: "vid6", name: "Guns N' Roses - Welcome To The Jungle - Rock", videoUrl: "https://www.youtube.com/embed/o1tj2zJ2Wvg?rel=0", locked: true },
+      { id: "vid7", name: "Gorillaz - Feel Good Inc. - Alternativo", videoUrl: "https://www.youtube.com/embed/HyHNuVaZJ-k?rel=0", locked: true },
+      { id: "vid8", name: "Starset - My Demons - Rock / Epic", videoUrl: "https://www.youtube.com/embed/nkll0StZJLA?rel=0", locked: true },
+      { id: "vid9", name: "Bibi Babydoll - Automotivo Bibi Fogosa - Funk BR", videoUrl: "https://www.youtube.com/embed/PgF29M69QXg?rel=0", locked: true },
+      { id: "vid10", name: "Luis Fonsi - Despacito - Reggaetón", videoUrl: "https://www.youtube.com/embed/kJQP7kiw5Fk?rel=0", locked: true },
+      { id: "vid11", name: "Anitta - Envolver - BR / Urbano", videoUrl: "https://www.youtube.com/embed/C7dPqrmDWxs?rel=0", locked: true },
+      { id: "vid12", name: "VOX DEI || Hazbin Hotel (Español Latino) - Hazbin / OST", videoUrl: "https://www.youtube.com/embed/k0ftbqj0is4?rel=0", locked: true },
+      { id: "vid13", name: "[HazbinHotel/BLENDER] Stayed Gone - 3D Animation", videoUrl: "https://www.youtube.com/embed/YfL7vll73BM?rel=0", locked: true },
+      { id: "vid14", name: "Canserbero (tema extra)", videoUrl: "https://www.youtube.com/embed/xK8SEUzk7BU?rel=0", locked: true }
+    ];
+
+    const imageTracks = [
+      { id: "img1", name: "Ejemplo - Imagen + MP3", audioUrl: "audio/tema1.mp3", imageUrl: "img/fondo1.jpg" }
+    ];
+
+    // DOM
+    const menu = document.getElementById("menu");
+    const game = document.getElementById("game");
+    const modeGroup = document.getElementById("modeGroup");
+    const musicTypeGroup = document.getElementById("musicTypeGroup");
+    const trackSelect = document.getElementById("trackSelect");
+    const playButton = document.getElementById("playButton");
+    const backToMenuBtn = document.getElementById("backToMenu");
+
+    const hudMode = document.getElementById("hudMode");
+    const hudSong = document.getElementById("hudSong");
+    const hudScore = document.getElementById("hudScore");
+    const hudCombo = document.getElementById("hudCombo");
+    const pcHint = document.getElementById("pcHint");
+
+    const bgLayer = document.getElementById("bgLayer");
+    const overlayShade = document.getElementById("overlayShade");
+    const gameArea = document.getElementById("gameArea");
+    const laneElements = Array.from(document.querySelectorAll(".lane"));
+    const touchControls = document.getElementById("touchControls");
+    const touchButtons = Array.from(document.querySelectorAll(".touch-btn"));
+
+    // Estado
+    let currentMode = "android";
+    let currentMusicType = "video";
+    let currentTrack = null;
+
+    let audioElement = null;
+    let gameRunning = false;
+    let arrows = [];
+    let lastSpawnTime = 0;
+    let lastFrameTime = 0;
+    let songTimerId = null;
+
+    let score = 0;
+    let combo = 0;
+
+    const laneOrder = ["left", "down", "up", "right"];
+
+    // MENÚ
+    function setActiveChip(container, chip) {
+      const chips = container.querySelectorAll(".chip");
+      chips.forEach(c => c.classList.remove("active"));
+      chip.classList.add("active");
+    }
+
+    modeGroup.addEventListener("click", (e) => {
+      const chip = e.target.closest(".chip");
+      if (!chip) return;
+      setActiveChip(modeGroup, chip);
+      currentMode = chip.dataset.mode;
+    });
+
+    musicTypeGroup.addEventListener("click", (e) => {
+      const chip = e.target.closest(".chip");
+      if (!chip) return;
+      setActiveChip(musicTypeGroup, chip);
+      currentMusicType = chip.dataset.type;
+      fillTrackSelect();
+    });
+
+    function fillTrackSelect() {
+      trackSelect.innerHTML = "";
+      const list = currentMusicType === "video" ? videoTracks : imageTracks;
+
+      list.forEach(track => {
+        const opt = document.createElement("option");
+        opt.value = track.id;
+        if (currentMusicType === "video" && track.locked) {
+          opt.disabled = true;
+          opt.textContent = track.name + " (Bloqueada - " + UNLOCK_SCORE + " pts)";
+        } else {
+          opt.textContent = track.name;
+        }
+        trackSelect.appendChild(opt);
+      });
+
+      if (currentMusicType === "video") {
+        const firstUnlocked = videoTracks.find(t => !t.locked);
+        if (firstUnlocked) trackSelect.value = firstUnlocked.id;
+      } else {
+        trackSelect.selectedIndex = 0;
+      }
+    }
+
+    fillTrackSelect();
+
+    // INICIO / FIN JUEGO
+    playButton.addEventListener("click", () => {
+      const trackId = trackSelect.value;
+      const list = currentMusicType === "video" ? videoTracks : imageTracks;
+      currentTrack = list.find(t => t.id === trackId) || list[0];
+      if (!currentTrack) return;
+
+      if (currentMusicType === "video" && currentTrack.locked) {
+        alert("Esta canción está bloqueada. Consigue " + UNLOCK_SCORE + " puntos en la anterior para desbloquearla.");
+        return;
+      }
+
+      startGame();
+    });
+
+    backToMenuBtn.addEventListener("click", () => {
+      if (backToMenuBtn.disabled) return;
+      stopGame();
+      game.classList.add("hidden");
+      menu.classList.remove("hidden");
+      pcHint.textContent = "";
+      fillTrackSelect();
+    });
+
+    function startGame() {
+      gameRunning = true;
+      arrows.forEach(a => a.element.remove());
+      arrows = [];
+      lastSpawnTime = performance.now();
+      lastFrameTime = performance.now();
+      score = 0;
+      combo = 0;
+
+      hudMode.textContent = "Modo: " + (currentMode === "android" ? "Android (Celular)" : "PC (Computadora)");
+      hudSong.textContent = "Canción: " + currentTrack.name;
+      hudScore.textContent = "Puntuación: " + score;
+      hudCombo.textContent = "Combo: " + combo;
+
+      if (currentMode === "android") {
+        touchControls.classList.remove("hidden");
+        pcHint.textContent = "";
+      } else {
+        touchControls.classList.add("hidden");
+        pcHint.textContent = "Usa las flechas del teclado: ↑ ↓ ← → para golpear en el momento justo.";
+      }
+
+      menu.classList.add("hidden");
+      game.classList.remove("hidden");
+
+      setupBackgroundAndAudio();
+
+      backToMenuBtn.disabled = true;
+      backToMenuBtn.classList.add("locked");
+      if (songTimerId) clearTimeout(songTimerId);
+      songTimerId = setTimeout(endSong, SONG_DURATION_MS);
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function stopGame() {
+      gameRunning = false;
+      arrows.forEach(a => a.element.remove());
+      arrows = [];
+      if (audioElement) {
+        audioElement.pause();
+        audioElement.currentTime = 0;
+      }
+      bgLayer.innerHTML = "";
+
+      if (songTimerId) {
+        clearTimeout(songTimerId);
+        songTimerId = null;
+      }
+      backToMenuBtn.disabled = false;
+      backToMenuBtn.classList.remove("locked");
+    }
+
+    function endSong() {
+      songTimerId = null;
+      gameRunning = false;
+      arrows.forEach(a => a.element.remove());
+      arrows = [];
+
+      if (audioElement) {
+        audioElement.pause();
+      }
+
+      backToMenuBtn.disabled = false;
+      backToMenuBtn.classList.remove("locked");
+
+      pcHint.textContent = "Canción terminada. Ahora puedes volver al menú.";
+      if (currentMusicType === "video") handleUnlock();
+    }
+
+    function handleUnlock() {
+      const currentIndex = videoTracks.findIndex(t => t.id === currentTrack.id);
+      const nextIndex = currentIndex + 1;
+      let message = "Puntuación final: " + score + " pts.";
+
+      if (score >= UNLOCK_SCORE && videoTracks[nextIndex] && videoTracks[nextIndex].locked) {
+        videoTracks[nextIndex].locked = false;
+        message += "\n\n¡Has desbloqueado la siguiente canción:\n" + videoTracks[nextIndex].name + "!";
+      } else if (score < UNLOCK_SCORE && videoTracks[nextIndex]) {
+        message += "\nNecesitas " + UNLOCK_SCORE + " pts para desbloquear la siguiente.";
+      }
+
+      alert(message);
+    }
+
+    // VIDEO / AUDIO
+    function setupBackgroundAndAudio() {
+      bgLayer.innerHTML = "";
+      if (audioElement) {
+        audioElement.pause();
+        audioElement = null;
+      }
+
+      if (currentMusicType === "video") {
+        const iframe = document.createElement("iframe");
+        const baseUrl = currentTrack.videoUrl;
+        const autoplayUrl = baseUrl.includes("?")
+          ? baseUrl + "&autoplay=1"
+          : baseUrl + "?autoplay=1";
+        iframe.src = autoplayUrl;
+        iframe.allow =
+          "accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share";
+        iframe.allowFullscreen = true;
+        bgLayer.appendChild(iframe);
+      } else {
+        const img = document.createElement("img");
+        img.src = currentTrack.imageUrl;
+        img.alt = currentTrack.name;
+        bgLayer.appendChild(img);
+
+        audioElement = new Audio(currentTrack.audioUrl);
+        audioElement.loop = false;
+        audioElement.play().catch(() => {
+          const resume = () => {
+            audioElement.play().catch(() => {});
+            window.removeEventListener("click", resume);
+            window.removeEventListener("keydown", resume);
+            window.removeEventListener("touchstart", resume);
+          };
+          window.addEventListener("click", resume, { once: true });
+          window.addEventListener("keydown", resume, { once: true });
+          window.addEventListener("touchstart", resume, { once: true });
+        });
+      }
+    }
+
+    // LOOP (flechas caen)
+    function gameLoop(timestamp) {
+      if (!gameRunning) return;
+
+      const deltaMs = timestamp - lastFrameTime;
+      const delta = deltaMs / 1000;
+      lastFrameTime = timestamp;
+
+      if (timestamp - lastSpawnTime > SPAWN_INTERVAL) {
+        spawnArrow();
+        lastSpawnTime = timestamp;
+      }
+
+      const laneHeight = laneElements[0].offsetHeight;
+
+      arrows.forEach(arrow => {
+        arrow.y += SPAWN_SPEED * delta;        // CAEN
+        arrow.element.style.top = arrow.y + "px";
+
+        const arrowCenterY = arrow.y + ARROW_SIZE / 2;
+
+        if (arrowCenterY > laneHeight + ARROW_SIZE) {
+          registerMiss();
+          arrow.toRemove = true;
+        }
+      });
+
+      arrows = arrows.filter(a => {
+        if (a.toRemove) {
+          a.element.remove();
+          return false;
+        }
+        return true;
+      });
+
+      requestAnimationFrame(gameLoop);
+    }
+
+    function spawnArrow() {
+      if (!gameRunning) return;
+      const dir = laneOrder[Math.floor(Math.random() * laneOrder.length)];
+      const laneIndex = laneOrder.indexOf(dir);
+      const lane = laneElements[laneIndex];
+
+      const startY = -80; // arranca más arriba de la parte visible del carril
+
+      const arrowEl = document.createElement("div");
+      arrowEl.classList.add("arrow", dir);
+      arrowEl.textContent =
+        dir === "up" ? "↑" :
+        dir === "down" ? "↓" :
+        dir === "left" ? "←" : "→";
+
+      arrowEl.style.top = startY + "px";
+      lane.appendChild(arrowEl);
+
+      arrows.push({
+        dir,
+        lane,
+        element: arrowEl,
+        y: startY
+      });
+    }
+
+    // FEEDBACK VISUAL PRO
+    function showFeedback(type) {
+      const fb = document.createElement("div");
+      fb.classList.add("feedback");
+      fb.textContent =
+        type === "perfect" ? "PERFECT!" :
+        type === "good" ? "GOOD!" : "MISS";
+
+      if (type === "miss") {
+        fb.style.color = "#ff4d6d";
+        fb.style.textShadow = "0 0 20px #f00, 0 0 35px #900";
+      } else {
+        fb.style.color = "#0ff";
+        fb.style.textShadow = "0 0 20px #0ff, 0 0 35px #0cf";
+      }
+
+      gameArea.appendChild(fb);
+      setTimeout(() => fb.remove(), 600);
+    }
+
+    // INPUT + LÓGICA DE HIT PRO
+    function tryHit(direction) {
+      if (!gameRunning) return;
+
+      const laneHeight = laneElements[0].offsetHeight;
+      const hitZoneCenterY = laneHeight - HIT_ZONE_BOTTOM - (HIT_ZONE_HEIGHT / 2);
+      const hitWindow = 55;
+
+      let bestArrow = null;
+      let bestDist = Infinity;
+
+      arrows.forEach(arrow => {
+        if (arrow.dir !== direction) return;
+        const arrowCenterY = arrow.y + ARROW_SIZE / 2;
+        const dist = Math.abs(arrowCenterY - hitZoneCenterY);
+        if (dist < hitWindow && dist < bestDist) {
+          bestDist = dist;
+          bestArrow = arrow;
+        }
+      });
+
+      if (bestArrow) {
+        const arrowCenterY = bestArrow.y + ARROW_SIZE / 2;
+        const dist = Math.abs(arrowCenterY - hitZoneCenterY);
+
+        const element = bestArrow.element;
+        element.classList.add("arrowHit");
+        setTimeout(() => element.classList.remove("arrowHit"), 120);
+
+        let points = 100;
+        let fbType = "good";
+
+        if (dist < 15) {
+          points = 200;
+          fbType = "perfect";
+          combo++;
+
+          // Cámara + fondo con beat solo en PERFECT
+          gameArea.classList.add("shake");
+          overlayShade.classList.add("beat");
+          setTimeout(() => {
+            gameArea.classList.remove("shake");
+            overlayShade.classList.remove("beat");
+          }, 350);
+        } else {
+          combo++;
+        }
+
+        score += points * Math.max(1, Math.floor(combo / 10));
+
+        hudScore.textContent = "Puntuación: " + score;
+        hudCombo.textContent = "Combo: " + combo;
+        showFeedback(fbType);
+
+        element.remove();
+        arrows = arrows.filter(a => a !== bestArrow);
+      } else {
+        registerMiss();
+      }
+    }
+
+    function registerMiss() {
+      combo = 0;
+      hudCombo.textContent = "Combo: 0";
+      showFeedback("miss");
+    }
+
+    touchButtons.forEach(btn => {
+      btn.addEventListener("click", () => {
+        const dir = btn.dataset.dir;
+        tryHit(dir);
+      });
+    });
+
+    document.addEventListener("keydown", (e) => {
+      const key = e.key;
+      if (key === "ArrowUp") tryHit("up");
+      else if (key === "ArrowDown") tryHit("down");
+      else if (key === "ArrowLeft") tryHit("left");
+      else if (key === "ArrowRight") tryHit("right");
+    });
+  </script>
+</body>
+</html>
