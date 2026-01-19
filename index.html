@@ -1,0 +1,2945 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>CALMATEX - Generador de Sensibilidad Free Fire</title>
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  /* Discord Checkpoint-ish palette */
+  --discord-green: #3bff8f;
+  --discord-green-2: #00ff88;
+  --discord-ink: #070a0f;
+  --discord-ink-2: #0b1220;
+  --discord-line: rgba(59, 255, 143, 0.35);
+  --discord-line-2: rgba(59, 255, 143, 0.15);
+
+  /* Keep your existing semantic vars mapped to the new palette */
+  --primary: var(--discord-green-2);
+  --secondary: #00d1ff;
+  --dark: var(--discord-ink);
+  --darker: #050510;
+  --accent: #8b5cf6;
+}
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+body {
+  font-family: 'Roboto', sans-serif;
+  color: #e5e7eb;
+  overflow-x: hidden;
+  min-height: 100vh;
+  position: relative;
+
+  /* Deep dark base + Discord-y green glow */
+  background:
+    radial-gradient(900px 420px at 15% 30%, rgba(59, 255, 143, 0.18), transparent 60%),
+    radial-gradient(780px 520px at 85% 65%, rgba(59, 255, 143, 0.12), transparent 65%),
+    linear-gradient(180deg, #05070c, #05070c);
+
+  /* Dot-matrix + subtle scanlines */
+  background-image:
+    radial-gradient(circle, rgba(59,255,143,0.22) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px),
+    radial-gradient(900px 420px at 15% 30%, rgba(59, 255, 143, 0.18), transparent 60%),
+    radial-gradient(780px 520px at 85% 65%, rgba(59, 255, 143, 0.12), transparent 65%),
+    linear-gradient(180deg, #05070c, #05070c);
+  background-size:
+    10px 10px,
+    100% 6px,
+    auto,
+    auto,
+    auto;
+  background-position:
+    0 0,
+    0 0,
+    0 0,
+    0 0,
+    0 0;
+}
+.bg-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+.particle {
+  position: absolute;
+  background: var(--primary);
+  border-radius: 50%;
+  opacity: 0;
+  animation: float 6s infinite ease-in-out;
+  box-shadow: 0 0 10px var(--primary);
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0) scale(0) rotate(0deg); opacity: 0; }
+  50% { transform: translateY(-100vh) scale(1) rotate(180deg); opacity: 0.6; }
+}
+.line {
+  position: absolute;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--secondary), transparent);
+  animation: scan 4s linear infinite;
+  box-shadow: 0 0 5px var(--secondary);
+}
+@keyframes scan {
+  0% { transform: translateX(-100%) scaleX(0.5); opacity: 0; }
+  50% { opacity: 1; }
+  100% { transform: translateX(200%) scaleX(1.5); opacity: 0; }
+}
+.container {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding: 20px;
+  position: relative;
+  z-index: 10;
+}
+
+header {
+  text-align: center;
+  margin-bottom: 40px;
+  padding: 30px 0;
+  animation: headerSlideIn 1s ease-out;
+}
+@keyframes headerSlideIn {
+  from { opacity: 0; transform: translateY(-50px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.logo {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 4rem;
+  font-weight: 900;
+  background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
+  letter-spacing: 3px;
+  animation: glow 2s ease-in-out infinite alternate, pulseText 4s ease-in-out infinite;
+}
+@keyframes glow {
+  from { text-shadow: 0 0 20px rgba(0, 255, 136, 0.5); }
+  to { text-shadow: 0 0 40px rgba(0, 255, 136, 0.8), 0 0 60px rgba(0, 209, 255, 0.6); }
+}
+@keyframes pulseText {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.02); }
+}
+.subtitle {
+  font-size: 1.3rem;
+  color: rgba(229,231,235,0.75);
+  margin-top: 10px;
+  font-weight: 300;
+  animation: fadeInUp 1.5s ease-out;
+}
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.nav-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  margin-bottom: 20px;
+}
+.btn-nav {
+  padding: 10px 20px;
+  background: rgba(0,0,0,0.35);
+  border: 1px solid var(--discord-line);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  font-family: 'Orbitron', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.45), 0 0 0 1px rgba(59,255,143,0.12) inset;
+  position: relative;
+  overflow: hidden;
+}
+.btn-nav::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: left 0.5s;
+}
+.btn-nav:hover::before {
+  left: 100%;
+}
+.btn-nav:hover {
+  transform: translateY(-2px) rotate(2deg);
+  box-shadow: 0 8px 20px rgba(0, 209, 255, 0.5);
+}
+.main-content {
+  transition: opacity 0.5s ease;
+}
+.main-content.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* SECCIÓN VIDEOS FULLSCREEN */
+.videos-full-section {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+  background: var(--dark);
+  z-index: 40;
+  overflow-y: auto;
+  padding: 20px;
+  animation: fadeIn 0.5s ease-out;
+}
+.videos-full-section.open {
+  display: block;
+}
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+.videos-full-header {
+  text-align: center;
+  padding: 20px 0;
+  border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+}
+.close-videos-btn {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: rgba(255, 0, 0, 0.7);
+  color: white;
+  border: none;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 1.2rem;
+  transition: all 0.3s ease;
+  animation: spinIn 0.5s ease-out;
+}
+@keyframes spinIn {
+  from { transform: rotate(-180deg) scale(0); opacity: 0; }
+  to { transform: rotate(0deg) scale(1); opacity: 1; }
+}
+.close-videos-btn:hover {
+  background: #ff0000;
+  transform: scale(1.1) rotate(90deg);
+}
+.videos-full-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 25px;
+  margin-top: 20px;
+  padding: 10px;
+}
+
+/* FILTROS DE VIDEO POR GÉNERO */
+.video-filters {
+  margin-top: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: center;
+}
+.video-filter-btn {
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,255,136,0.4);
+  background: rgba(0,0,0,0.4);
+  color: #9fffd0;
+  font-size: 0.8rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.video-filter-btn:hover,
+.video-filter-btn.active {
+  background: var(--primary);
+  color: #000;
+  box-shadow: 0 0 10px rgba(0,255,136,0.6);
+}
+
+/* CARDS GENERALES */
+.card {
+  background: rgba(10, 10, 26, 0.85);
+  border-radius: 20px;
+  padding: 30px;
+  margin-bottom: 25px;
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  animation: cardSlideIn 0.8s ease-out forwards;
+  opacity: 0;
+  transform: translateY(30px);
+}
+.card:nth-child(1) { animation-delay: 0.1s; }
+.card:nth-child(2) { animation-delay: 0.2s; }
+.card:nth-child(3) { animation-delay: 0.3s; }
+@keyframes cardSlideIn {
+  to { opacity: 1; transform: translateY(0); }
+}
+#resultado {
+  opacity: 1 !important;
+  transform: translateY(0) !important;
+  animation: fadeInUp 0.6s ease-out, glowBorder 2s ease-in-out infinite alternate !important;
+  backdrop-filter: blur(8px);
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--dark), var(--darker)) padding-box,
+    linear-gradient(45deg, var(--primary), var(--secondary), var(--accent)) border-box;
+}
+.card.processing {
+  position: relative;
+  overflow: hidden;
+}
+.card.processing::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.2), transparent);
+  animation: scanGlow 1.5s infinite;
+  pointer-events: none;
+}
+@keyframes scanGlow {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+.card:hover {
+  transform: translateY(-5px) rotateX(5deg);
+  box-shadow: 0 15px 40px rgba(0, 255, 136, 0.2), 0 0 30px rgba(0, 255, 136, 0.1);
+  border-color: var(--primary);
+}
+h2 {
+  font-family: 'Orbitron', sans-serif;
+  color: var(--primary);
+  margin-bottom: 20px;
+  font-size: 1.6rem;
+  text-align: center;
+  position: relative;
+}
+h2::after {
+  content: '';
+  position: absolute;
+  bottom: -5px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 50px;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  animation: underlineExpand 1s ease-out;
+}
+@keyframes underlineExpand {
+  from { width: 0; }
+  to { width: 50px; }
+}
+.form-group {
+  margin-bottom: 25px;
+}
+label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: 500;
+  color: #ccc;
+  font-size: 1.1rem;
+  animation: labelFadeIn 0.5s ease-out;
+}
+@keyframes labelFadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+select {
+  width: 100%;
+  padding: 14px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(0, 255, 136, 0.3);
+  border-radius: 10px;
+  color: #fff;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+  position: relative;
+}
+select:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
+  transform: scale(1.02);
+}
+select option, select optgroup {
+  background: white;
+  color: black;
+}
+select optgroup option {
+  background: white;
+  color: black;
+}
+select optgroup {
+  color: black;
+}
+.btn-generate {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  margin-top: 20px;
+  background: linear-gradient(180deg, rgba(59,255,143,0.22), rgba(59,255,143,0.08));
+  border: 1px solid rgba(59,255,143,0.45);
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.3rem;
+  font-weight: 600;
+  font-family: 'Orbitron', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
+  position: relative;
+  overflow: hidden;
+}
+.btn-generate::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+  transition: 0.5s;
+}
+.btn-generate:hover::before {
+  left: 100%;
+}
+.btn-generate:hover {
+  transform: translateY(-3px) scale(1.05);
+  box-shadow: 0 10px 25px rgba(0, 255, 136, 0.6);
+}
+.btn-generate.loading {
+  pointer-events: none;
+  opacity: 0.7;
+}
+.btn-generate.loading::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 20px;
+  height: 20px;
+  margin: -10px 0 0 -10px;
+  border: 2px solid transparent;
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Botones secundarios */
+.btn-secondary {
+  display: inline-block;
+  padding: 10px 14px;
+  margin-top: 10px;
+  margin-right: 8px;
+  background: linear-gradient(45deg, var(--secondary), var(--accent));
+  color: white;
+  border: none;
+  border-radius: 999px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  font-family: 'Orbitron', sans-serif;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 3px 10px rgba(0, 209, 255, 0.3);
+}
+.btn-secondary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(0, 209, 255, 0.5);
+}
+
+#resultado {
+  display: none;
+  margin-top: 20px;
+  padding: 25px;
+  background: rgba(5, 5, 16, 0.9);
+  border-radius: 15px;
+  border: 1px solid var(--primary);
+  animation: fadeInUp 0.6s ease-out, glowBorder 2s ease-in-out infinite alternate;
+}
+@keyframes glowBorder {
+  from { box-shadow: 0 0 10px rgba(0, 255, 136, 0.3); }
+  to { box-shadow: 0 0 20px rgba(0, 255, 136, 0.6); }
+}
+.sensibilidad-item {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px dashed rgba(0, 255, 136, 0.2);
+  font-size: 1.1rem;
+  transition: all 0.3s ease;
+  opacity: 0;
+}
+.sensibilidad-item.reveal {
+  animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+@keyframes popIn {
+  0% { opacity: 0; transform: scale(0.8); }
+  70% { transform: scale(1.05); }
+  100% { opacity: 1; transform: scale(1); }
+}
+.sensibilidad-item:hover {
+  padding-left: 10px;
+  border-left: 3px solid var(--primary);
+}
+.sensibilidad-item:last-child {
+  border-bottom: none;
+}
+.sensibilidad-item span:first-child {
+  color: #aaa;
+}
+.sensibilidad-item span:last-child {
+  color: var(--primary);
+  font-weight: 600;
+}
+
+/* BLOQUE SENSI XITADA */
+.sensi-xitada-block {
+  margin-top: 25px;
+  padding: 18px;
+  border-radius: 15px;
+  border: 1px solid var(--accent);
+  background: rgba(255, 0, 170, 0.08);
+  box-shadow: 0 0 20px rgba(255, 0, 170, 0.2);
+}
+.sensi-xitada-block h3 {
+  font-family: 'Orbitron', sans-serif;
+  color: var(--accent);
+  font-size: 1.2rem;
+  margin-bottom: 10px;
+  text-align: center;
+}
+.sensi-xitada-block p {
+  font-size: 0.9rem;
+  color: #ddd;
+  text-align: center;
+  margin-bottom: 12px;
+}
+#sensi-xitada-lista .sensibilidad-item span:last-child {
+  color: var(--accent);
+}
+#copiar-xitada-btn {
+  margin-top: 12px;
+  padding: 10px 14px;
+  width: 100%;
+  font-size: 0.95rem;
+  border-radius: 10px;
+  border: 1px solid var(--accent);
+  background: rgba(255, 0, 170, 0.15);
+  color: #fff;
+  cursor: pointer;
+  font-family: 'Orbitron', sans-serif;
+  transition: all 0.3s ease;
+}
+#copiar-xitada-btn:hover {
+  background: var(--accent);
+  color: #000;
+  box-shadow: 0 0 15px rgba(255, 0, 170, 0.7);
+  transform: translateY(-2px) scale(1.02);
+}
+.sensi-xitada-block.xitado-active {
+  animation: xitadoPulse 0.7s ease-in-out;
+}
+@keyframes xitadoPulse {
+  0% { transform: scale(1) rotate(0deg); }
+  25% { transform: scale(1.02) rotate(-1deg); }
+  50% { transform: scale(1.04) rotate(1deg); }
+  75% { transform: scale(1.02) rotate(-1deg); }
+  100% { transform: scale(1) rotate(0deg); }
+}
+
+/* PACK BR */
+.pack-br {
+  margin-top: 8px;
+  font-size: 0.85rem;
+  color: #ccc;
+}
+.pack-br-item {
+  margin-bottom: 3px;
+}
+
+/* HUD PERFECTO */
+.hud-info {
+  background: rgba(0, 209, 255, 0.08);
+  border: 1px solid rgba(0, 209, 255, 0.4);
+  padding: 12px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+  font-size: 0.9rem;
+}
+
+/* DPI + BOTÓN */
+.dpi-recomendado,
+.boton-disparo {
+  background: rgba(0, 209, 255, 0.1);
+  border: 1px solid var(--secondary);
+  padding: 15px;
+  border-radius: 10px;
+  margin-bottom: 20px;
+  text-align: center;
+  font-weight: 500;
+  animation: infoPulse 3s ease-in-out infinite;
+}
+@keyframes infoPulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.8; }
+}
+.boton-disparo {
+  background: rgba(255, 0, 170, 0.1);
+  border-color: var(--accent);
+}
+.copy-btn {
+  background: rgba(0, 255, 136, 0.2);
+  color: var(--primary);
+  border: 1px solid var(--primary);
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  margin-left: 10px;
+  transition: all 0.3s ease;
+}
+.copy-btn:hover {
+  background: var(--primary);
+  color: #000;
+  transform: scale(1.1);
+}
+.copy-btn:active {
+  transform: scale(0.95);
+  background: #00ff88 !important;
+  color: #000 !important;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
+}
+
+/* TOAST */
+.toast {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%) translateY(100px);
+  background: rgba(0, 255, 136, 0.9);
+  color: #000;
+  padding: 12px 24px;
+  border-radius: 10px;
+  font-weight: bold;
+  font-family: 'Orbitron', sans-serif;
+  box-shadow: 0 5px 20px rgba(0, 255, 136, 0.5);
+  z-index: 1000;
+  opacity: 0;
+  transition: transform 0.4s ease, opacity 0.4s ease;
+}
+.toast.show {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+}
+
+/* PRESETS */
+.presets-section {
+  margin-top: 20px;
+  padding: 15px;
+  border-radius: 15px;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(0, 255, 136, 0.2);
+}
+.presets-section h3 {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 1rem;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+#presets-list {
+  margin-top: 5px;
+}
+.preset-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(0, 255, 136, 0.2);
+  font-size: 0.85rem;
+}
+.preset-item:last-child {
+  border-bottom: none;
+}
+.preset-name {
+  flex: 1;
+  padding-right: 8px;
+}
+.preset-meta {
+  color: #999;
+  font-size: 0.75rem;
+}
+.preset-actions button {
+  border-radius: 999px;
+  border: 1px solid var(--primary);
+  background: transparent;
+  color: var(--primary);
+  font-size: 0.75rem;
+  padding: 4px 8px;
+  cursor: pointer;
+  margin-left: 4px;
+  transition: all 0.2s ease;
+}
+.preset-actions button:hover {
+  background: var(--primary);
+  color: #000;
+}
+
+/* MENU MÚSICA */
+.menu-container {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background: rgba(10, 10, 26, 0.95);
+  backdrop-filter: blur(10px);
+  border-right: 1px solid rgba(0, 255, 136, 0.2);
+  transform: translateX(-100%);
+  transition: transform 0.3s ease;
+  z-index: 30;
+  overflow-y: auto;
+}
+.menu-container.open {
+  transform: translateX(0);
+  animation: menuSlideIn 0.3s ease-out;
+}
+@keyframes menuSlideIn {
+  from { transform: translateX(-100%); }
+  to { transform: translateX(0); }
+}
+.menu-toggle {
+  position: fixed;
+  top: 20px;
+  left: 20px;
+  z-index: 31;
+  background: linear-gradient(45deg, var(--primary), var(--secondary));
+  border: none;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  padding: 5px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+}
+.menu-toggle:hover {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
+}
+.menu-toggle span {
+  width: 25px;
+  height: 3px;
+  background: #fff;
+  border-radius: 2px;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 5px rgba(255,255,255,0.5);
+}
+.menu-toggle.open span:nth-child(1) {
+  transform: rotate(45deg) translate(5px, 5px);
+}
+.menu-toggle.open span:nth-child(2) {
+  opacity: 0;
+}
+.menu-toggle.open span:nth-child(3) {
+  transform: rotate(-45deg) translate(7px, -6px);
+}
+.menu-header {
+  padding: 20px;
+  text-align: center;
+  border-bottom: 1px solid rgba(0, 255, 136, 0.2);
+}
+.menu-header h3 {
+  font-family: 'Orbitron', sans-serif;
+  color: var(--primary);
+  font-size: 1.4rem;
+  animation: glow 2s ease-in-out infinite alternate;
+}
+.music-list {
+  padding: 20px 0;
+}
+.music-item {
+  display: flex;
+  align-items: center;
+  padding: 18px 20px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border-bottom: 1px solid rgba(0, 255, 136, 0.1);
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(to right, transparent, rgba(0, 255, 136, 0.02));
+}
+.music-item:last-child {
+  border-bottom: none;
+}
+.music-item::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 0;
+  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.15), transparent);
+  transition: width 0.4s ease;
+}
+.music-item:hover::before,
+.music-item.active::before {
+  width: 100%;
+}
+.music-item:hover,
+.music-item.active {
+  background: rgba(0, 255, 136, 0.12);
+  border-left: 4px solid var(--primary);
+  transform: translateX(8px);
+  box-shadow: 0 2px 10px rgba(0, 255, 136, 0.1);
+}
+.music-icon {
+  font-size: 1.3rem;
+  color: var(--primary);
+  margin-right: 10px;
+  width: 26px;
+  text-align: center;
+}
+.music-thumb {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  overflow: hidden;
+  margin-right: 12px;
+  flex-shrink: 0;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
+  border: 2px solid rgba(0,255,136,0.6);
+}
+.music-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.music-title {
+  flex: 1;
+  font-size: 0.95rem;
+  font-weight: 400;
+  color: #fff;
+  z-index: 1;
+  position: relative;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.music-item:hover .music-title,
+.music-item.active .music-title {
+  color: var(--primary);
+  font-weight: 500;
+}
+.music-duration {
+  margin-left: auto;
+  color: #aaa;
+  font-size: 0.8rem;
+  font-weight: 300;
+  padding-left: 10px;
+  transition: color 0.3s ease;
+}
+.music-item:hover .music-duration,
+.music-item.active .music-duration {
+  color: var(--primary);
+}
+.music-genre {
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 999px;
+  border: 1px solid rgba(0,255,136,0.4);
+  margin-left: 8px;
+  color: #9fffd0;
+}
+
+/* OVERLAY */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 25;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+.overlay.open {
+  opacity: 1;
+  visibility: visible;
+}
+
+/* BOTÓN MÚSICA + NOW PLAYING */
+.music-player {
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 40;
+}
+
+.music-trigger-area {
+  width: 100px;
+  height: 100px;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.btn-music {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  background: linear-gradient(45deg, var(--primary), var(--secondary));
+  color: white;
+  border: none;
+  cursor: pointer;
+  transition: all 0.3s ease, transform 0.5s ease;
+  box-shadow: 0 0 20px rgba(0, 255, 136, 0.5), 0 5px 15px rgba(0, 209, 255, 0.4);
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transform: translateX(0);
+  animation: neon-glow 2s ease-in-out infinite alternate, floatButton 6s ease-in-out infinite;
+}
+
+/* MINIATURA CIRCULAR EN EL BOTÓN */
+.btn-music img#btn-music-thumb {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  z-index: 0;
+  filter: brightness(0.9);
+  transition: transform 0.4s ease, filter 0.3s ease;
+}
+.btn-music.playing img#btn-music-thumb {
+  transform: scale(1.05);
+  filter: brightness(1);
+}
+
+/* MINI LOGO ESTILO YOUTUBE SOBRE LA PORTADA */
+.yt-logo-overlay {
+  position: absolute;
+  bottom: 6px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 32px;
+  height: 20px;
+  border-radius: 6px;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1;
+  box-shadow: 0 0 8px rgba(0,0,0,0.7);
+}
+.yt-logo-overlay::before {
+  content: '';
+  width: 0;
+  height: 0;
+  border-left: 9px solid #ff0000;
+  border-top: 6px solid transparent;
+  border-bottom: 6px solid transparent;
+}
+
+/* ÍCONO PLAY/PAUSA SOBRE TODO */
+#music-icon {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.55);
+  box-shadow: 0 0 8px rgba(0, 0, 0, 0.7);
+}
+#music-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+@keyframes floatButton {
+  0%, 100% { transform: translateY(0) rotate(0deg); }
+  50% { transform: translateY(-5px) rotate(180deg); }
+}
+@keyframes neon-glow {
+  from { box-shadow: 0 0 20px rgba(0, 255, 136, 0.5), 0 5px 15px rgba(0, 209, 255, 0.4); }
+  to { box-shadow: 0 0 30px rgba(0, 255, 136, 0.8), 0 5px 20px rgba(0, 209, 255, 0.6); }
+}
+.btn-music.hidden {
+  transform: translateX(100px);
+}
+.btn-music svg {
+  fill: white;
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+.btn-music svg.fade {
+  opacity: 0;
+  transform: scale(0.8) rotate(360deg);
+}
+.btn-music.playing {
+  animation: pulse 2s infinite ease-in-out, rotate-slow 3s linear infinite, neon-glow 2s ease-in-out infinite alternate;
+}
+@keyframes pulse {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+}
+@keyframes rotate-slow {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+.btn-music::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.3), transparent);
+  transition: left 0.5s ease;
+}
+.btn-music:hover::before {
+  left: 100%;
+}
+.btn-music:hover {
+  transform: translateY(-3px) scale(1.1) rotate(5deg);
+  box-shadow: 0 0 40px rgba(0, 255, 136, 0.8), 0 5px 25px rgba(0, 209, 255, 0.6);
+}
+.btn-music::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 1px;
+  background: linear-gradient(to right, transparent, var(--primary), transparent);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+.btn-music:hover::after {
+  opacity: 1;
+  animation: scan-line 1s linear infinite;
+}
+@keyframes scan-line {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+.btn-music:active {
+  transform: rotate(10deg);
+  transition: transform 0.1s ease;
+}
+
+/* TARJETA NOW PLAYING */
+.now-playing {
+  margin-top: 8px;
+  background: rgba(0,0,0,0.55);
+  border-radius: 12px;
+  border: 1px solid rgba(0,255,136,0.4);
+  padding: 8px 10px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  max-width: 260px;
+  box-shadow: 0 0 15px rgba(0,255,136,0.25);
+}
+.now-playing.hidden {
+  display: none;
+}
+.np-thumb {
+  width: 46px;
+  height: 46px;
+  border-radius: 10px;
+  overflow: hidden;
+  flex-shrink: 0;
+  box-shadow: 0 0 12px rgba(0,255,136,0.6);
+}
+.np-thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.np-info {
+  flex: 1;
+}
+.np-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: #9fffd0;
+  margin-bottom: 2px;
+}
+.np-title {
+  font-size: 0.85rem;
+  font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.np-genre {
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+/* ECUALIZADOR NOW PLAYING */
+.np-eq {
+  display: flex;
+  gap: 2px;
+  height: 18px;
+  align-items: flex-end;
+}
+.np-eq span {
+  width: 3px;
+  border-radius: 3px;
+  background: var(--primary);
+  opacity: 0.5;
+  animation: eqAnim 1s infinite;
+  animation-play-state: paused;
+}
+.np-eq span:nth-child(1) { animation-delay: 0s; }
+.np-eq span:nth-child(2) { animation-delay: 0.1s; }
+.np-eq span:nth-child(3) { animation-delay: 0.2s; }
+.np-eq span:nth-child(4) { animation-delay: 0.3s; }
+.np-eq span:nth-child(5) { animation-delay: 0.4s; }
+.np-eq.active span {
+  animation-play-state: running;
+  opacity: 1;
+}
+@keyframes eqAnim {
+  0%, 100% { height: 4px; }
+  50% { height: 16px; }
+}
+
+/* CONTROLES EXTRA MÚSICA */
+.music-controls {
+  margin-top: 6px;
+  display: flex;
+  gap: 6px;
+  justify-content: flex-end;
+}
+.music-controls button {
+  border: none;
+  border-radius: 999px;
+  padding: 4px 8px;
+  font-size: 0.75rem;
+  cursor: pointer;
+  background: rgba(0, 0, 0, 0.6);
+  color: #9fffd0;
+  border: 1px solid rgba(0,255,136,0.4);
+  transition: all 0.2s ease;
+}
+.music-controls button:hover {
+  background: var(--primary);
+  color: #000;
+  box-shadow: 0 0 10px rgba(0,255,136,0.6);
+}
+
+/* PANEL DE LETRAS TIPO SPOTIFY */
+.lyrics-panel {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  width: 320px;
+  max-height: 55vh;
+  background: rgba(5, 5, 16, 0.96);
+  border-radius: 18px;
+  border: 1px solid rgba(0,255,136,0.5);
+  box-shadow: 0 0 30px rgba(0,255,136,0.4);
+  display: none;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 50;
+}
+.lyrics-panel.open {
+  display: flex;
+  animation: fadeIn 0.25s ease-out;
+}
+.lyrics-header {
+  padding: 10px 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgba(0,255,136,0.2);
+  background: radial-gradient(circle at 0 0, rgba(0,255,136,0.25), transparent);
+}
+.lyrics-header-title {
+  font-family: 'Orbitron', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  color: var(--primary);
+}
+#lyrics-track-name {
+  font-size: 0.75rem;
+  color: #ccc;
+}
+#close-lyrics {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1rem;
+  cursor: pointer;
+}
+.lyrics-body {
+  padding: 10px 14px;
+  overflow-y: auto;
+  scrollbar-width: thin;
+}
+.lyrics-body::-webkit-scrollbar {
+  width: 4px;
+}
+.lyrics-body::-webkit-scrollbar-thumb {
+  background: rgba(0,255,136,0.7);
+  border-radius: 10px;
+}
+.lyrics-line {
+  font-size: 0.9rem;
+  color: #888;
+  margin-bottom: 6px;
+  transition: all 0.25s ease;
+  opacity: 0.6;
+}
+.lyrics-line.active {
+  color: #fff;
+  font-weight: 500;
+  opacity: 1;
+  transform: scale(1.03);
+  text-shadow: 0 0 10px rgba(0,255,136,0.8);
+}
+.lyrics-helper {
+  font-size: 0.7rem;
+  color: #999;
+  padding: 7px 12px 9px;
+  border-top: 1px solid rgba(0,255,136,0.15);
+  background: rgba(0,0,0,0.7);
+}
+
+/* VOLUMEN */
+.volume-control {
+  position: absolute;
+  top: 80px;
+  right: 0;
+  width: 120px;
+  padding: 10px;
+  background: rgba(10, 10, 26, 0.85);
+  border-radius: 10px;
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+  opacity: 1;
+  transform: translateY(0);
+  animation: slideDown 0.3s ease-out;
+}
+@keyframes slideDown {
+  from { transform: translateY(-20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.volume-control.hidden {
+  opacity: 0;
+  transform: translateY(10px);
+  pointer-events: none;
+}
+.volume-control input[type="range"] {
+  width: 100%;
+  cursor: pointer;
+  -webkit-appearance: none;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 5px;
+  height: 5px;
+  outline: none;
+  transition: background 0.3s ease;
+}
+.volume-control input[type="range"]:hover {
+  background: rgba(0, 255, 136, 0.2);
+}
+.volume-control input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 15px;
+  height: 15px;
+  background: var(--primary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.volume-control input[type="range"]::-webkit-slider-thumb:hover {
+  transform: scale(1.2);
+}
+.volume-control input[type="range"]::-moz-range-thumb {
+  width: 15px;
+  height: 15px;
+  background: var(--primary);
+  border-radius: 50%;
+  box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+  cursor: pointer;
+  border: none;
+  transition: transform 0.2s ease;
+}
+.volume-control input[type="range"]::-moz-range-thumb:hover {
+  transform: scale(1.2);
+}
+#youtube-player {
+  display: none;
+}
+
+/* VIDEOS INLINE */
+footer {
+  text-align: center;
+  margin-top: 50px;
+  color: #666;
+  font-size: 0.9rem;
+  animation: fadeInUp 2s ease-out;
+}
+.videos-section {
+  margin-top: 30px;
+  display: none;
+}
+.videos-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 25px;
+  margin-top: 20px;
+  padding: 10px;
+}
+.video-item {
+  text-align: center;
+  background: rgba(10, 10, 26, 0.85);
+  border-radius: 20px;
+  padding: 20px;
+  border: 1px solid rgba(0, 255, 136, 0.2);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  backdrop-filter: blur(10px);
+  transition: all 0.3s ease;
+  overflow: hidden;
+  position: relative;
+  animation: cardSlideIn 0.8s ease-out forwards;
+  opacity: 0;
+  transform: translateY(30px);
+}
+.video-item:nth-child(1) { animation-delay: 0.1s; }
+.video-item:nth-child(2) { animation-delay: 0.2s; }
+.video-item:nth-child(3) { animation-delay: 0.3s; }
+.video-item:nth-child(4) { animation-delay: 0.4s; }
+.video-item:hover {
+  transform: translateY(-5px) rotateX(5deg);
+  box-shadow: 0 15px 40px rgba(0, 255, 136, 0.2), 0 0 30px rgba(0, 255, 136, 0.1);
+  border-color: var(--primary);
+}
+.video-item h3 {
+  font-family: 'Orbitron', sans-serif;
+  color: var(--secondary);
+  margin-bottom: 8px;
+  font-size: 1.1rem;
+  text-align: center;
+  text-shadow: 0 0 10px rgba(0, 209, 255, 0.5);
+  position: relative;
+  z-index: 2;
+}
+.video-genre {
+  font-size: 0.75rem;
+  color: #9fffd0;
+  margin-bottom: 10px;
+}
+.video-embed {
+  position: relative;
+  width: 100%;
+  height: 0;
+  padding-bottom: 56.25%;
+  border-radius: 15px;
+  overflow: hidden;
+  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+}
+.video-item:hover .video-embed {
+  box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
+  transform: scale(1.02);
+}
+.video-embed iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  border: none;
+  border-radius: 15px;
+}
+.video-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, var(--primary), transparent);
+  transform: scaleX(0);
+  transition: transform 0.3s ease;
+}
+.video-item:hover::before {
+  transform: scaleX(1);
+}
+.video-item::after {
+  content: '▶';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 3rem;
+  color: rgba(0, 255, 136, 0.8);
+  opacity: 0;
+  transition: opacity 0.3s ease;
+  z-index: 1;
+  pointer-events: none;
+}
+.video-item:hover::after {
+  opacity: 1;
+  animation: iconBounce 0.6s ease-out;
+}
+@keyframes iconBounce {
+  0% { transform: translate(-50%, -50%) scale(0); }
+  50% { transform: translate(-50%, -50%) scale(1.2); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* EFECTO ESPECIAL TRACK NUEVO */
+.special-track-active body,
+.special-track-active {
+  background-image:
+    radial-gradient(circle at 10% 10%, rgba(255, 0, 170, 0.35) 0%, transparent 55%),
+    radial-gradient(circle at 90% 90%, rgba(0, 209, 255, 0.35) 0%, transparent 55%);
+}
+.special-track-active .logo {
+  text-shadow: 0 0 40px rgba(255, 0, 170, 0.9), 0 0 80px rgba(0, 209, 255, 0.9);
+  animation-duration: 1.2s;
+}
+.special-track-active .btn-music {
+  box-shadow: 0 0 40px rgba(255, 0, 170, 0.9), 0 0 40px rgba(0, 255, 136, 0.9);
+}
+.special-track-active .sensi-xitada-block {
+  animation: xitadoPulse 0.6s ease-in-out infinite;
+}
+
+/* RESPONSIVE */
+@media(max-width: 768px) {
+  .videos-list, .videos-full-list {
+    grid-template-columns: 1fr;
+    gap: 20px;
+  }
+  .logo { font-size: 2.8rem; }
+  .container { padding: 15px; }
+  .card { padding: 20px; }
+  .music-player { top: 10px; right: 10px; }
+  .music-trigger-area { width: 80px; height: 80px; }
+  .btn-music { width: 60px; height: 60px; }
+  #music-icon { width: 28px; height: 28px; }
+  #music-icon svg { width: 16px; height: 16px; }
+  .btn-music.hidden { transform: translateX(80px); }
+  .volume-control { top: 70px; width: 100px; }
+  .menu-container { width: 100%; }
+  .menu-toggle { left: 10px; top: 10px; width: 45px; height: 45px; }
+  .menu-toggle span { width: 20px; height: 2px; }
+  .nav-buttons { flex-direction: column; gap: 10px; }
+  .videos-full-list, .videos-list {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    padding: 5px;
+  }
+  .video-item { padding: 15px; border-radius: 15px; }
+  .video-item h3 { font-size: 1.1rem; }
+  .music-item { padding: 16px 18px; }
+  .music-icon { display:none; }
+  .music-thumb { margin-right: 10px; }
+  .now-playing {
+    max-width: 210px;
+    padding: 6px 8px;
+  }
+  .np-title {
+    font-size: 0.8rem;
+  }
+  .lyrics-panel {
+    width: 90%;
+    right: 5%;
+    bottom: 10px;
+  }
+}
+
+.advanced-net {
+  margin-top: 18px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  background: rgba(3, 15, 20, 0.8);
+  border: 1px solid rgba(0, 255, 157, 0.4);
+  box-shadow: 0 0 18px rgba(0, 255, 157, 0.22);
+}
+
+.advanced-net h3 {
+  margin-top: 0;
+  margin-bottom: 4px;
+  font-size: 1rem;
+  color: #7fffd4;
+}
+
+.small-help {
+  font-size: 0.78rem;
+  color: #b0bec5;
+  margin-bottom: 6px;
+}
+
+.net-advice {
+  margin-top: 6px;
+  font-style: italic;
+}
+
+
+.preset-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px;
+}
+
+.pulse-xitada {
+  animation: pulseXitada 0.4s ease-out;
+}
+
+@keyframes pulseXitada {
+  0% { transform: scale(1); box-shadow: 0 0 18px rgba(0, 255, 157, 0.4); }
+  50% { transform: scale(1.01); box-shadow: 0 0 26px rgba(0, 255, 90, 0.75); }
+  100% { transform: scale(1); box-shadow: 0 0 18px rgba(0, 255, 157, 0.4); }
+}
+
+
+/* LOADER DE ENTRADA */
+.page-loader {
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at top, #020617, #000000);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  transition: opacity 0.4s ease;
+}
+
+.page-loader.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.loader-inner {
+  text-align: center;
+  padding: 18px 22px;
+  border-radius: 20px;
+  background: rgba(15, 23, 42, 0.95);
+  border: 1px solid rgba(56, 189, 248, 0.6);
+  box-shadow: 0 0 28px rgba(56, 189, 248, 0.35);
+}
+
+.loader-circle {
+  width: 52px;
+  height: 52px;
+  border-radius: 50%;
+  border: 4px solid rgba(148, 163, 184, 0.4);
+  border-top-color: #22c55e;
+  border-right-color: #0ea5e9;
+  animation: spinLoader 1s linear infinite;
+  margin: 0 auto 10px;
+}
+
+.loader-inner p {
+  font-size: 0.9rem;
+  color: #e5e7eb;
+}
+
+@keyframes spinLoader {
+  to { transform: rotate(360deg); }
+}
+
+/* Pequeña animación de entrada para el header y la card principal */
+header {
+  animation: headerSlideIn 0.7s ease-out forwards;
+}
+
+.main-content .card {
+  animation: cardFadeUp 0.8s ease-out forwards;
+}
+
+@keyframes cardFadeUp {
+  from { opacity: 0; transform: translateY(18px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+
+@media (max-width: 600px) {
+  .container {
+    padding: 16px 10px;
+  }
+}
+
+@media (max-width: 768px) {
+  .music-player {
+    top: auto;
+    bottom: 14px;
+    right: 16px;
+  }
+}
+
+
+/* === Discord Checkpoint-ish polish (added) === */
+.card {
+  position: relative;
+  overflow: hidden;
+}
+.card::before{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  opacity:0.55;
+  background:
+    radial-gradient(circle, rgba(59,255,143,0.16) 1px, transparent 1px);
+  background-size: 10px 10px;
+  mix-blend-mode: screen;
+}
+.card::after{
+  content:"";
+  position:absolute;
+  inset:0;
+  pointer-events:none;
+  background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent 35%, rgba(0,0,0,0.25));
+  opacity:0.7;
+}
+.card > * { position: relative; z-index: 1; }
+
+.btn-nav, .btn-secondary, .btn-generate {
+  backdrop-filter: blur(10px);
+}
+
+.btn-nav:hover {
+  border-color: rgba(59,255,143,0.75);
+  box-shadow: 0 12px 30px rgba(0,0,0,0.5), 0 0 22px rgba(59,255,143,0.25);
+  transform: translateY(-2px);
+}
+
+h2 { color: var(--discord-green); }
+h2::after { background: linear-gradient(90deg, transparent, var(--discord-green), transparent); }
+
+</style>
+</head>
+<body>
+
+<div class="bg-animation" id="bg-animation"></div>
+<div class="overlay" id="menu-overlay"></div>
+
+<div class="menu-container" id="menu-container">
+  <div class="menu-header">
+    <h3>Playlist de Música</h3>
+  </div>
+  <div class="music-list" id="music-list"></div>
+</div>
+<button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú de playlist">
+  <span></span><span></span><span></span>
+</button>
+
+<div class="container">
+  <header>
+    <h1 class="logo">CALMATEX</h1>
+    <p class="subtitle">Generador Inteligente de Sensibilidad + Botón de Disparo</p>
+    <div class="nav-buttons">
+      <button class="btn-nav" id="btn-videos">🎥 Videos</button>
+    </div>
+  </header>
+
+  <div class="music-player">
+    <div class="music-trigger-area">
+      <button class="btn-music" id="music-toggle" aria-label="Reproducir/Pausar música" aria-pressed="false">
+        <!-- Miniatura circular del tema actual -->
+        <img id="btn-music-thumb" src="" alt="Portada de la canción actual">
+        <!-- Mini logo estilo YouTube -->
+        <div class="yt-logo-overlay"></div>
+        <!-- Icono play/pausa -->
+        <span id="music-icon" role="img" aria-label="Ícono de reproducción"></span>
+      </button>
+      <div class="volume-control hidden" id="volume-control">
+        <input type="range" id="volume-slider" min="0" max="100" value="50">
+      </div>
+    </div>
+    <div id="youtube-player"></div>
+    <!-- TARJETA NOW PLAYING -->
+    <div class="now-playing hidden" id="now-playing">
+      <div class="np-thumb">
+        <img id="np-thumb-img" src="" alt="Portada de la canción actual">
+      </div>
+      <div class="np-info">
+        <div class="np-label">Reproduciendo</div>
+        <div class="np-title" id="np-title">-</div>
+        <div class="np-genre" id="np-genre">-</div>
+      </div>
+      <div class="np-eq">
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+    </div>
+    <!-- CONTROLES EXTRA -->
+    <div class="music-controls">
+      <button id="prev-track" title="Canción anterior">⏮</button>
+      <button id="next-track" title="Siguiente canción">⏭</button>
+      <button id="shuffle-track" title="Shuffle">🔀</button>
+      <button id="toggle-lyrics" title="Ver letra">🎤</button>
+    </div>
+  </div>
+
+  <div class="main-content">
+    <div class="card">
+      <h2>Configura tu Celular</h2>
+
+      <div class="form-group">
+        <label for="modelo-celular">Modelo de Celular</label>
+        <select id="modelo-celular">
+          <optgroup label="Samsung">
+            <option value="samsung-s24">Galaxy S24 Ultra</option>
+            <option value="samsung-s23">Galaxy S23 Ultra</option>
+            <option value="samsung-a73">Galaxy A73 / A54</option>
+            <option value="samsung-a55">Galaxy A55</option>
+            <option value="samsung-a34">Galaxy A34 / A14</option>
+            <option value="samsung-z-fold5">Galaxy Z Fold 5</option>
+<option value="samsung-s22">Galaxy S22 Ultra</option>
+<option value="samsung-s21">Galaxy S21 FE</option>
+<option value="samsung-a15">Galaxy A15/ A25</option>
+          </optgroup>
+          <optgroup label="Apple">
+            <option value="iphone-15">iPhone 15 Pro Max</option>
+            <option value="iphone-16">iPhone 16 Pro Max</option>
+            <option value="iphone-13">iPhone 13/ 12</option>
+            <option value="iphone-14">iPhone 14 Pro</option>
+<option value="iphone-11">iPhone 11</option>
+<option value="iphone-xr">iPhone XR/ XS</option>
+          </optgroup>
+          <optgroup label="Xiaomi/ Redmi/ POCO">
+            <option value="poco-x6">POCO X6 Pro/ Note 13 Pro+</option>
+            <option value="xiaomi-14">Xiaomi 14 Ultra</option>
+            <option value="mi11-lite">Mi 11 Lite 5G/ 5G NE</option>
+            <option value="redmi-note12">Redmi Note 12/ POCO M5</option>
+            <option value="redmi-note13">Redmi Note 13 Pro</option>
+            <option value="redmi-note8">Redmi Note 8</option>
+            <option value="redmi-9">Redmi 9/ 9A</option>
+<option value="poco-x3">POCO X3 Pro</option>
+<option value="redmi-note10">Redmi Note 10/ 10 Pro</option>
+          </optgroup>
+          <optgroup label="Motorola">
+            <option value="moto-g84">Moto G84/ G73</option>
+            <option value="moto-g54">Moto G54/ G34</option>
+            <option value="moto-edge50">Moto Edge 50 Pro</option>
+<option value="moto-g32">Moto G32/ G42</option>
+          </optgroup>
+          <optgroup label="Realme">
+            <option value="realme-11">Realme 11 Pro/ GT Neo</option>
+            <option value="realme-12">Realme 12 Pro+</option>
+            <option value="realme-c55">Realme C55/ C53</option>
+<option value="realme-9">Realme 9 Pro+</option>
+          </optgroup>
+          <optgroup label="Huawei">
+            <option value="huawei-p60">Huawei P60 Pro</option>
+            <option value="huawei-mate60">Huawei Mate 60 Pro</option>
+            <option value="huawei-nova10">Huawei Nova 10</option>
+<option value="huawei-y9">Huawei Y9/ Y7</option>
+          </optgroup>
+          <optgroup label="Oppo">
+            <option value="oppo-reno8">Oppo Reno 8 Pro</option>
+            <option value="oppo-findx7">Oppo Find X7 Ultra</option>
+            <option value="oppo-a78">Oppo A78</option>
+          </optgroup>
+          <optgroup label="Google">
+            <option value="pixel-9">Pixel 9 Pro XL</option>
+            <option value="pixel-8">Pixel 8 Pro</option>
+          </optgroup>
+          <optgroup label="OnePlus">
+            <option value="oneplus-12">OnePlus 12</option>
+            <option value="oneplus-11">OnePlus 11</option>
+          </optgroup>
+          <optgroup label="Sony">
+            <option value="xperia-1-vi">Xperia 1 VI</option>
+            <option value="xperia-5-v">Xperia 5 V</option>
+          </optgroup>
+          <optgroup label="Otros">
+            <option value="generic-high">Alta Gama (120Hz+)</option>
+            <option value="generic-mid">Media Gama (90Hz)</option>
+            <option value="generic-low">Básico (60Hz)</option>
+            <option value="generic-ultra">Ultra Alta Gama (144Hz)</option>
+          </optgroup>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="estilo-juego">Estilo de Juego</label>
+        <select id="estilo-juego">
+          <option value="rush">Rush (Agresivo)</option>
+          <option value="equilibrado" selected>Equilibrado</option>
+          <option value="camper">Camper (Defensivo)</option>
+          <option value="headshot">Headshot (Preciso)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="nivel-experiencia">Experiencia en Free Fire</label>
+        <select id="nivel-experiencia">
+          <option value="principiante">Principiante</option>
+          <option value="intermedio" selected>Intermedio</option>
+          <option value="avanzado">Avanzado</option>
+          <option value="pro">Pro Player</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="modo-competitivo">Modo Competitivo</label>
+        <select id="modo-competitivo">
+          <option value="casual">Casual / Sala con amigos</option>
+          <option value="ranked">Ranked / Clasificatoria</option>
+          <option value="torneo">Torneo / Competitivo duro</option>
+        </select>
+      </div>
+
+      <button class="btn-generate" id="generar-sensibilidad">GENERAR SENSI + BOTÓN</button>
+    </div>
+
+    <div id="resultado" class="card">
+      <h2>Tu Configuración ÉPICA</h2>
+
+      <div id="dpi-info" class="dpi-recomendado" style="display: none;">
+        <strong>DPI Recomendado:</strong> <span id="dpi-valor"></span>
+      </div>
+
+      <div id="boton-info" class="boton-disparo" style="display: none;">
+        <strong>Botón de Disparo:</strong>
+        <span id="boton-lado"></span> | Tamaño: <span id="boton-tamano"></span> | Opacidad: <span id="boton-opacidad"></span>%
+      </div>
+
+      <div id="hud-info" class="hud-info" style="display:none;"></div>
+
+      <div id="configuracion-lista"></div>
+
+
+
+      <div id="sensi-xitada" class="sensi-xitada-block" style="display:none;">
+        <h3>🔥 Sensi Xitada (Opcional)</h3>
+        <p>Preset extremo al estilo brasileño. Úsalo solo si controlas bien la mira.</p>
+        <div id="sensi-xitada-lista"></div>
+
+        <div class="pack-br">
+          <div id="pack-br-lista"></div>
+        </div>
+
+        <button id="copiar-xitada-btn" aria-label="Copiar solo la Sensi Xitada">
+          COPIAR SOLO SENSI XITADA
+        </button>
+      </div>
+
+      <button class="btn-generate" id="copiar-todo-btn" aria-label="Copiar toda la configuración">
+        COPIAR TODO (SENSI + DPI + BOTÓN)
+      </button>
+
+      <div style="margin-top: 10px;">
+        <button class="btn-secondary" id="guardar-preset-btn">GUARDAR PRESET</button>
+        <button class="btn-secondary" id="copiar-whatsapp-btn">COPIAR FORMATO WHATSAPP</button>
+      </div>
+
+      <div id="presets-section" class="presets-section" style="display:none;">
+        <h3>Presets guardados</h3>
+        <div id="presets-list"></div>
+      </div>
+    </div>
+
+    <div id="videos-section" class="card videos-section">
+      <h2>Videos de YouTube</h2>
+      <div id="videos-list" class="videos-list"></div>
+    </div>
+
+    <footer>
+      <p>CALMATEX © 2025 | Optimizado para <strong>Free Fire MAX</strong> | <strong>¡Headshots garantizados!</strong></p>
+    </footer>
+  </div>
+
+  <div id="videos-full" class="videos-full-section">
+    <button class="close-videos-btn" id="close-videos">&times;</button>
+    <div class="videos-full-header">
+      <h2>Videos de YouTube</h2>
+      <div class="video-filters" id="video-filters"></div>
+    </div>
+    <div class="videos-full-list" id="videos-full-list"></div>
+  </div>
+</div>
+
+<!-- PANEL DE LETRAS -->
+<div class="lyrics-panel" id="lyrics-panel">
+  <div class="lyrics-header">
+    <div>
+      <div class="lyrics-header-title">LETRA</div>
+      <div id="lyrics-track-name">Selecciona una canción</div>
+    </div>
+    <button id="close-lyrics" aria-label="Cerrar letras">✕</button>
+  </div>
+  <div class="lyrics-body" id="lyrics-lines">
+    <p class="lyrics-line">No hay letra cargada para este tema aún.</p>
+  </div>
+  <div class="lyrics-helper">
+    Edita el objeto <code>lyricsData</code> en el JS y pon tus letras + tiempos (segundos).
+  </div>
+</div>
+
+<div id="toast" class="toast">¡Copiado!</div>
+
+<script src="https://www.youtube.com/iframe_api"></script>
+<script>
+
+window.addEventListener('load', () => {
+  const loader = document.getElementById('page-loader');
+  if (loader) {
+    setTimeout(() => { loader.classList.add('hidden'); }, 600);
+    setTimeout(() => { loader.remove(); }, 1100);
+  }
+});
+
+let player;
+let isPlaying = false;
+let currentTrackIndex = -1;
+let ytErrorSkips = 0;
+const SPECIAL_TRACK_INDEX = 0;
+
+document.addEventListener('DOMContentLoaded', () => {
+  const pingSlider = document.getElementById('ping-aprox');
+  const pingValor = document.getElementById('ping-valor');
+  const fpsSelect = document.getElementById('fps-aprox');
+  const netAdvice = document.getElementById('net-advice');
+
+  function updateNetAdvice() {
+    if (!pingSlider || !fpsSelect || !netAdvice || !pingValor) return;
+    const ping = parseInt(pingSlider.value, 10) || 60;
+    const fps = parseInt(fpsSelect.value, 10) || 60;
+    pingValor.textContent = `Ping: ${ping} ms`;
+
+    let msg = "";
+    if (ping <= 40 && fps >= 60) {
+      msg = "Tienes buena conexión 💚. Puedes usar sensi más xitada y agresiva sin tanto problema.";
+    } else if (ping <= 70) {
+      msg = "Conexión decente. Te doy una sensi equilibrada para no perder tantos tiros por delay.";
+    } else {
+      msg = "Ping alto ⚠️. Conviene una sensi un poco más tranquila para que el delay no te arruine la mira.";
+    }
+    if (fps <= 45) {
+      msg += " Tus FPS son algo bajos, así que priorizamos control sobre velocidad extrema.";
+    } else if (fps >= 90) {
+      msg += " Tus FPS son muy altos, puedes permitirte una mira más rápida.";
+    }
+    netAdvice.textContent = msg;
+  }
+
+  if (pingSlider) {
+    pingSlider.addEventListener('input', updateNetAdvice);
+  }
+  if (fpsSelect) {
+    fpsSelect.addEventListener('change', updateNetAdvice);
+  }
+  updateNetAdvice();
+
+  // Presets Xitada BR
+  const packBrLista = document.getElementById('pack-br-lista');
+  if (packBrLista) {
+    packBrLista.innerHTML = `
+      <div class="preset-row">
+        <button type="button" class="btn-secondary btn-br-preset" data-preset="nobru">Xitada Nobru Style</button>
+        <button type="button" class="btn-secondary btn-br-preset" data-preset="rush-br">Xitada Rush BR</button>
+        <button type="button" class="btn-secondary btn-br-preset" data-preset="preciso-br">Xitada Precisión BR</button>
+      </div>
+    `;
+
+    packBrLista.addEventListener('click', (e) => {
+      const btn = e.target.closest('.btn-br-preset');
+      if (!btn) return;
+      const preset = btn.dataset.preset;
+      aplicarPresetXitado(preset);
+    });
+  }
+});
+
+function aplicarPresetXitado(tipo) {
+  // Campos base (puedes ajustar estos IDs a lo que tengas en tu formulario)
+  const generalInput = document.getElementById('sens-general');
+  const mira2Input = document.getElementById('sens-mira-2x');
+  const mira4Input = document.getElementById('sens-mira-4x');
+  const miraAwmInput = document.getElementById('sens-awp');
+  const dpiInput = document.getElementById('dpi');
+  const botonDisparoInput = document.getElementById('btn-disparo');
+
+  if (!generalInput || !mira2Input || !mira4Input || !miraAwmInput || !dpiInput || !botonDisparoInput) {
+    console.warn("No se encontraron todos los campos de sensi para aplicar la xitada.");
+    return;
+  }
+
+  if (tipo === 'nobru') {
+    generalInput.value = 95;
+    mira2Input.value = 93;
+    mira4Input.value = 90;
+    miraAwmInput.value = 88;
+    dpiInput.value = 600;
+    botonDisparoInput.value = 52;
+  } else if (tipo === 'rush-br') {
+    generalInput.value = 98;
+    mira2Input.value = 96;
+    mira4Input.value = 94;
+    miraAwmInput.value = 90;
+    dpiInput.value = 650;
+    botonDisparoInput.value = 50;
+  } else if (tipo === 'preciso-br') {
+    generalInput.value = 88;
+    mira2Input.value = 86;
+    mira4Input.value = 84;
+    miraAwmInput.value = 82;
+    dpiInput.value = 500;
+    botonDisparoInput.value = 54;
+  }
+
+  // pequeña animación feedback si existe la card principal
+  const mainCard = document.querySelector('.card');
+  if (mainCard) {
+    mainCard.classList.add('pulse-xitada');
+    setTimeout(() => mainCard.classList.remove('pulse-xitada'), 600);
+  }
+}
+
+
+const playIcon = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
+const pauseIcon = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+
+/* PLAYLIST */
+const musicTracks = [
+  { id: 'SwqOjKUIz-E', title: 'Tema Especial Calmatex', genre: 'Trap / Dembow' },
+  { id: 'xK8SEUzk7BU', title: 'Nueva Música (Pedido)', genre: 'Extra' },
+  { id: 'lf7TVbYwJ7s', title: 'Alan Walker - Spectre', genre: 'Electrónica' },
+  { id: '3aevyrmqbY0', title: 'FLOW - HERO - Kibou no Uta', genre: 'Anime' },
+  { id: 'gT2wY0DjYGo', title: 'Joost Klein - Europapa', genre: 'Eurovision' },
+  { id: 'FMA8X18-W1Q', title: 'Entre Nosotros', genre: 'Reggaetón' },
+  { id: 'o1tj2zJ2Wvg', title: "Guns N' Roses - Welcome To The Jungle", genre: 'Rock' },
+  { id: 'HyHNuVaZJ-k', title: 'Gorillaz - Feel Good Inc.', genre: 'Alternativo' },
+  { id: 'nkll0StZJLA', title: 'Starset - My Demons', genre: 'Rock / Epic' },
+  { id: 'PgF29M69QXg', title: 'Bibi Babydoll - Automotivo Bibi Fogosa', genre: 'Funk BR' },
+  { id: 'kJQP7kiw5Fk', title: 'Luis Fonsi - Despacito', genre: 'Reggaetón' },
+  { id: 'C7dPqrmDWxs', title: 'Anitta - Envolver', genre: 'BR / Urbano' },
+  { id: 'k0ftbqj0is4', title: 'VOX DEI || Hazbin Hotel (Español Latino)', genre: 'Hazbin / OST' },
+  { id: 'YfL7vll73BM', title: '[HazbinHotel/BLENDER] Stayed Gone - 3D Animation', genre: '3D Animation' },
+  { id: 'PzdlWMPudmo', title: 'Otra Música (Pedido)', genre: 'Extra' },
+];
+
+const durations = ['3:30', '3:45', '4:12', '2:58', '3:20', '5:05', '3:50', '4:30', '2:45', '3:27', '3:14'];
+
+/* LETRAS SINCRONIZADAS (EJEMPLOS: tú debes poner la letra real) */
+const lyricsData = {
+  'SwqOjKUIz-E': [
+    { time: 0,  text: '[Intro]' },
+    { time: 5,  text: 'Línea 1 de la letra (edítala tú)' },
+    { time: 10, text: 'Línea 2 de la letra' },
+    { time: 15, text: 'Línea 3 de la letra' }
+  ],
+  'PgF29M69QXg': [
+    { time: 0,  text: '[Intro Funk BR]' },
+    { time: 6,  text: 'Línea 1' },
+    { time: 12, text: 'Línea 2' }
+  ]
+};
+
+let lyricsInterval = null;
+let currentLyricsTrackId = null;
+
+/* PRESETS LOCALSTORAGE */
+const PRESETS_KEY = 'calmatex_presets_v1';
+let presets = [];
+
+/* YT API */
+function onYouTubeIframeAPIReady() {
+  player = new YT.Player('youtube-player', {
+    height: '0',
+    width: '0',
+    videoId: musicTracks[0].id,
+    playerVars: {
+      'autoplay': 1,
+      'controls': 0,
+      'showinfo': 0,
+      'rel': 0,
+      'fs': 0,
+      'enablejsapi': 1
+    },
+    events: {
+      'onReady': onPlayerReady,
+      'onStateChange': onPlayerStateChange,
+      'onError': onPlayerError
+    }
+  });
+}
+
+function onPlayerError(event) {
+  console.error('Error en YouTube:', event.data);
+  // 101/150: el video no permite reproducción embebida
+  ytErrorSkips = (ytErrorSkips || 0) + 1;
+  const code = event && typeof event.data !== 'undefined' ? event.data : '??';
+  if (ytErrorSkips >= (musicTracks ? musicTracks.length : 10)) {
+    showToast('No se pudo reproducir la música (cód. ' + code + ')');
+    return;
+  }
+  showToast('Este tema no se puede reproducir (cód. ' + code + '). Siguiente ▶');
+  try { nextTrack(true); } catch (e) {}
+}
+
+
+function onPlayerStateChange(event) {
+  const musicIcon = document.getElementById('music-icon');
+  const musicToggle = document.getElementById('music-toggle');
+  const npEq = document.querySelector('.np-eq');
+
+  if (event.data === YT.PlayerState.PLAYING) {
+    ytErrorSkips = 0;
+    isPlaying = true;
+    musicIcon.innerHTML = pauseIcon;
+    musicToggle.classList.add('playing');
+    musicToggle.setAttribute('aria-pressed', 'true');
+    if (npEq) npEq.classList.add('active');
+
+    if (currentTrackIndex === SPECIAL_TRACK_INDEX) {
+      document.body.classList.add('special-track-active');
+    } else {
+      document.body.classList.remove('special-track-active');
+    }
+
+  } else if (event.data === YT.PlayerState.PAUSED) {
+    isPlaying = false;
+    musicIcon.innerHTML = playIcon;
+    musicToggle.classList.remove('playing');
+    musicToggle.setAttribute('aria-pressed', 'false');
+    if (npEq) npEq.classList.remove('active');
+    document.body.classList.remove('special-track-active');
+
+  } else if (event.data === YT.PlayerState.ENDED) {
+    nextTrack(true);
+  }
+}
+
+/* LETRAS */
+function openLyricsPanelForTrack(track) {
+  const panel = document.getElementById('lyrics-panel');
+  const linesContainer = document.getElementById('lyrics-lines');
+  const trackNameEl = document.getElementById('lyrics-track-name');
+
+  currentLyricsTrackId = track.id;
+  const data = lyricsData[track.id];
+
+  trackNameEl.textContent = track.title || 'Tema sin nombre';
+  linesContainer.innerHTML = '';
+
+  if (!data || !data.length) {
+    linesContainer.innerHTML = '<p class="lyrics-line">No has agregado aún la letra para este tema.</p>';
+  } else {
+    data.forEach((line, index) => {
+      const div = document.createElement('div');
+      div.className = 'lyrics-line';
+      div.dataset.time = line.time;
+      div.id = 'lyrics-line-' + index;
+      div.textContent = line.text;
+      linesContainer.appendChild(div);
+    });
+  }
+
+  if (lyricsInterval) clearInterval(lyricsInterval);
+
+  if (data && data.length) {
+    lyricsInterval = setInterval(() => {
+      if (!player) return;
+      const t = player.getCurrentTime();
+      let activeIndex = 0;
+
+      for (let i = 0; i < data.length; i++) {
+        if (t >= data[i].time) activeIndex = i;
+        else break;
+      }
+
+      const allLines = document.querySelectorAll('#lyrics-lines .lyrics-line');
+      allLines.forEach((el, i) => {
+        el.classList.toggle('active', i === activeIndex);
+      });
+
+      const activeEl = document.querySelector('#lyrics-lines .lyrics-line.active');
+      if (activeEl) {
+        activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+    }, 400);
+  }
+
+  panel.classList.add('open');
+}
+
+function closeLyricsPanel() {
+  const panel = document.getElementById('lyrics-panel');
+  panel.classList.remove('open');
+  if (lyricsInterval) {
+    clearInterval(lyricsInterval);
+    lyricsInterval = null;
+  }
+}
+
+/* TRACK UI */
+function updateActiveTrack() {
+  const items = document.querySelectorAll('.music-item');
+  items.forEach((item, i) => {
+    item.classList.toggle('active', i === currentTrackIndex);
+  });
+}
+function updatePlayButtonThumb() {
+  const img = document.getElementById('btn-music-thumb');
+  if (!img || currentTrackIndex < 0 || currentTrackIndex >= musicTracks.length) return;
+  const track = musicTracks[currentTrackIndex];
+  img.src = 'https://img.youtube.com/vi/' + track.id + '/mqdefault.jpg';
+}
+function updateNowPlaying() {
+  const np = document.getElementById('now-playing');
+  const img = document.getElementById('np-thumb-img');
+  const titleEl = document.getElementById('np-title');
+  const genreEl = document.getElementById('np-genre');
+
+  if (!np || currentTrackIndex < 0 || currentTrackIndex >= musicTracks.length) {
+    if (np) np.classList.add('hidden');
+    return;
+  }
+
+  const track = musicTracks[currentTrackIndex];
+  const thumbUrl = 'https://img.youtube.com/vi/' + track.id + '/mqdefault.jpg';
+  img.src = thumbUrl;
+  titleEl.textContent = track.title;
+  genreEl.textContent = track.genre || '';
+  np.classList.remove('hidden');
+
+  updatePlayButtonThumb();
+}
+
+/* CAMBIOS DE TRACK */
+function selectTrack(index) {
+  if (index < 0 || index >= musicTracks.length || !player) return;
+  currentTrackIndex = index;
+  const track = musicTracks[index];
+  player.loadVideoById(track.id);
+
+  setTimeout(() => {
+    if (player && player.getPlayerState() !== YT.PlayerState.PLAYING) {
+      player.playVideo();
+    }
+  }, 500);
+
+  updateActiveTrack();
+  updateNowPlaying();
+
+  const panel = document.getElementById('lyrics-panel');
+  if (panel && panel.classList.contains('open')) {
+    openLyricsPanelForTrack(track);
+  }
+}
+function nextTrack(auto = false) {
+  if (!musicTracks.length) return;
+  let next = currentTrackIndex + 1;
+  if (next >= musicTracks.length) next = 0;
+  selectTrack(next);
+  if (!auto) showToast('Siguiente track ▶');
+}
+function prevTrack() {
+  if (!musicTracks.length) return;
+  let prev = currentTrackIndex - 1;
+  if (prev < 0) prev = musicTracks.length - 1;
+  selectTrack(prev);
+  showToast('Track anterior ⏮');
+}
+function shuffleTrack() {
+  if (!musicTracks.length) return;
+  let randomIndex = currentTrackIndex;
+  while (randomIndex === currentTrackIndex && musicTracks.length > 1) {
+    randomIndex = Math.floor(Math.random() * musicTracks.length);
+  }
+  selectTrack(randomIndex);
+  showToast('Shuffle 🔀');
+}
+
+/* PLAYLIST MENU */
+function generateMusicList() {
+  const list = document.getElementById('music-list');
+  list.innerHTML = '';
+  musicTracks.forEach((track, index) => {
+    const thumbUrl = 'https://img.youtube.com/vi/' + track.id + '/mqdefault.jpg';
+    const item = document.createElement('div');
+    item.className = 'music-item';
+    item.innerHTML = `
+      <div class="music-icon">▶</div>
+      <div class="music-thumb">
+        <img src="${thumbUrl}" alt="Portada">
+      </div>
+      <span class="music-title">
+        ${track.title}
+        <span class="music-genre">${track.genre}</span>
+      </span>
+      <span class="music-duration">${durations[index] || ''}</span>
+    `;
+    item.addEventListener('click', () => selectTrack(index));
+    list.appendChild(item);
+  });
+
+  if (musicTracks.length > 0) {
+    currentTrackIndex = 0;
+    updateActiveTrack();
+    updateNowPlaying();
+  }
+}
+
+/* VIDEO FILTERS */
+function getUniqueGenres() {
+  const set = new Set();
+  musicTracks.forEach(t => { if (t.genre) set.add(t.genre); });
+  return Array.from(set);
+}
+function generateVideoFilters() {
+  const container = document.getElementById('video-filters');
+  if (!container) return;
+  container.innerHTML = '';
+
+  const genres = getUniqueGenres();
+
+  const createBtn = (label, value, isActive = false) => {
+    const btn = document.createElement('button');
+    btn.className = 'video-filter-btn' + (isActive ? ' active' : '');
+    btn.textContent = label;
+    btn.dataset.genre = value;
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.video-filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      generateVideoEmbeds('videos-full-list', value);
+    });
+    container.appendChild(btn);
+  };
+
+  createBtn('Todo', 'all', true);
+  genres.forEach(g => createBtn(g, g, false));
+}
+function generateVideoEmbeds(containerId, genreFilter = 'all') {
+  const list = document.getElementById(containerId);
+  if (!list) return;
+  list.innerHTML = '';
+
+  let idx = 0;
+  musicTracks.forEach(track => {
+    if (genreFilter !== 'all' && track.genre !== genreFilter) return;
+
+    const item = document.createElement('div');
+    item.className = 'video-item';
+    item.style.animationDelay = (idx * 0.1) + 's';
+    item.innerHTML = `
+      <h3>${track.title}</h3>
+      <div class="video-genre">${track.genre}</div>
+      <div class="video-embed">
+        <iframe src="https://www.youtube.com/embed/${track.id}?enablejsapi=1&rel=0" allowfullscreen></iframe>
+      </div>
+    `;
+    list.appendChild(item);
+    idx++;
+  });
+}
+
+/* MENU */
+function toggleMenu() {
+  const menu = document.getElementById('menu-container');
+  const toggle = document.getElementById('menu-toggle');
+  const overlay = document.getElementById('menu-overlay');
+  menu.classList.toggle('open');
+  toggle.classList.toggle('open');
+  overlay.classList.toggle('open');
+}
+function closeMenu() {
+  const menu = document.getElementById('menu-container');
+  const toggle = document.getElementById('menu-toggle');
+  const overlay = document.getElementById('menu-overlay');
+  menu.classList.remove('open');
+  toggle.classList.remove('open');
+  overlay.classList.remove('open');
+}
+
+/* VIDEOS FULL */
+function openVideos() {
+  document.querySelector('.main-content').classList.add('hidden');
+  document.getElementById('videos-full').classList.add('open');
+  generateVideoFilters();
+  generateVideoEmbeds('videos-full-list', 'all');
+}
+function closeVideos() {
+  document.getElementById('videos-full').classList.remove('open');
+  document.querySelector('.main-content').classList.remove('hidden');
+}
+
+/* CONFIG SENSI */
+const configs = {
+  'samsung-s24': { sensi: {g:145,p:160,x2:155,x4:140,f:125,c:130}, dpi: 888, boton: {lado:'derecha', tam:70, op:85} },
+  'samsung-s23': { sensi: {g:142,p:158,x2:152,x4:138,f:122,c:128}, dpi: 888, boton: {lado:'derecha', tam:70, op:85} },
+  'samsung-a73': { sensi: {g:130,p:145,x2:140,x4:130,f:115,c:120}, dpi: 788, boton: {lado:'derecha', tam:75, op:80} },
+  'samsung-a55': { sensi: {g:125,p:138,x2:132,x4:122,f:105,c:110}, dpi: 788, boton: {lado:'derecha', tam:75, op:80} },
+  'samsung-a34': { sensi: {g:110,p:125,x2:120,x4:110,f:95,c:100}, dpi: 488, boton: {lado:'derecha', tam:80, op:75} },
+  'samsung-z-fold5': { sensi: {g:150,p:165,x2:160,x4:145,f:130,c:135}, dpi: 888, boton: {lado:'derecha', tam:65, op:90} },
+  'iphone-15': { sensi: {g:150,p:165,x2:160,x4:145,f:130,c:135}, dpi: 411, boton: {lado:'derecha', tam:65, op:90} },
+  'iphone-16': { sensi: {g:155,p:170,x2:165,x4:150,f:135,c:140}, dpi: 411, boton: {lado:'derecha', tam:65, op:90} },
+  'iphone-13': { sensi: {g:135,p:150,x2:145,x4:135,f:120,c:125}, dpi: 411, boton: {lado:'derecha', tam:68, op:88} },
+  'iphone-14': { sensi: {g:140,p:155,x2:150,x4:135,f:120,c:125}, dpi: 411, boton: {lado:'derecha', tam:68, op:88} },
+  'poco-x6': { sensi: {g:148,p:162,x2:158,x4:143,f:128,c:132}, dpi: 888, boton: {lado:'derecha', tam:68, op:87} },
+  'xiaomi-14': { sensi: {g:152,p:167,x2:162,x4:147,f:132,c:137}, dpi: 888, boton: {lado:'derecha', tam:65, op:88} },
+  'mi11-lite': { sensi: {g:155,p:170,x2:165,x4:150,f:135,c:140}, dpi: 888, boton: {lado:'derecha', tam:66, op:90} },
+  'redmi-note12': { sensi: {g:128,p:140,x2:135,x4:125,f:110,c:115}, dpi: 788, boton: {lado:'derecha', tam:76, op:78} },
+  'redmi-note13': { sensi: {g:132,p:144,x2:138,x4:128,f:112,c:118}, dpi: 788, boton: {lado:'derecha', tam:74, op:79} },
+  'redmi-note8': { sensi: {g:175,p:150,x2:150,x4:180,f:120,c:200}, dpi: 788, boton: {lado:'derecha', tam:82, op:70} },
+  'redmi-9': { sensi: {g:105,p:115,x2:110,x4:100,f:85,c:90}, dpi: 488, boton: {lado:'derecha', tam:85, op:65} },
+  'moto-g84': { sensi: {g:138,p:152,x2:148,x4:135,f:118,c:125}, dpi: 788, boton: {lado:'derecha', tam:72, op:82} },
+  'moto-g54': { sensi: {g:120,p:132,x2:128,x4:118,f:100,c:108}, dpi: 588, boton: {lado:'derecha', tam:78, op:75} },
+  'moto-edge50': { sensi: {g:145,p:160,x2:155,x4:140,f:125,c:130}, dpi: 888, boton: {lado:'derecha', tam:70, op:85} },
+  'realme-11': { sensi: {g:150,p:165,x2:160,x4:135,f:130,c:135}, dpi: 888, boton: {lado:'derecha', tam:67, op:88} },
+  'realme-12': { sensi: {g:152,p:167,x2:162,x4:137,f:132,c:137}, dpi: 888, boton: {lado:'derecha', tam:66, op:89} },
+  'realme-c55': { sensi: {g:112,p:125,x2:120,x4:108,f:92,c:98}, dpi: 488, boton: {lado:'derecha', tam:80, op:72} },
+  'huawei-p60': { sensi: {g:145,p:160,x2:155,x4:140,f:125,c:130}, dpi: 888, boton: {lado:'derecha', tam:68, op:85} },
+  'huawei-mate60': { sensi: {g:148,p:162,x2:158,x4:143,f:128,c:132}, dpi: 888, boton: {lado:'derecha', tam:68, op:87} },
+  'huawei-nova10': { sensi: {g:130,p:145,x2:140,x4:130,f:115,c:120}, dpi: 788, boton: {lado:'derecha', tam:75, op:80} },
+  'oppo-reno8': { sensi: {g:140,p:155,x2:150,x4:135,f:120,c:125}, dpi: 888, boton: {lado:'derecha', tam:70, op:87} },
+  'oppo-findx7': { sensi: {g:155,p:170,x2:165,x4:150,f:135,c:140}, dpi: 988, boton: {lado:'derecha', tam:65, op:90} },
+  'oppo-a78': { sensi: {g:115,p:130,x2:125,x4:115,f:100,c:105}, dpi: 588, boton: {lado:'derecha', tam:78, op:75} },
+  'pixel-9': { sensi: {g:150,p:165,x2:160,x4:145,f:130,c:135}, dpi: 888, boton: {lado:'derecha', tam:65, op:90} },
+  'pixel-8': { sensi: {g:145,p:160,x2:155,x4:140,f:125,c:130}, dpi: 888, boton: {lado:'derecha', tam:68, op:88} },
+  'oneplus-12': { sensi: {g:152,p:167,x2:162,x4:147,f:132,c:137}, dpi: 888, boton: {lado:'derecha', tam:66, op:89} },
+  'oneplus-11': { sensi: {g:148,p:162,x2:158,x4:143,f:128,c:132}, dpi: 888, boton: {lado:'derecha', tam:68, op:87} },
+  'xperia-1-vi': { sensi: {g:155,p:170,x2:165,x4:150,f:135,c:140}, dpi: 988, boton: {lado:'derecha', tam:65, op:90} },
+  'xperia-5-v': { sensi: {g:140,p:155,x2:150,x4:135,f:120,c:125}, dpi: 888, boton: {lado:'derecha', tam:70, op:87} },
+  'generic-high': { sensi: {g:142,p:158,x2:152,x4:138,f:122,c:128}, dpi: 888, boton: {lado:'derecha', tam:70, op:85} },
+  'generic-mid': { sensi: {g:125,p:138,x2:132,x4:122,f:105,c:110}, dpi: 788, boton: {lado:'derecha', tam:75, op:80} },
+  'generic-low': { sensi: {g:105,p:118,x2:112,x4:100,f:85,c:90}, dpi: 488, boton: {lado:'derecha', tam:85, op:70} },
+  'generic-ultra': { sensi: {g:155,p:170,x2:165,x4:150,f:135,c:140}, dpi: 988, boton: {lado:'derecha', tam:65, op:90} }
+};
+
+const mods = {
+  estilo: {
+    rush: {g:15,p:20,x2:18,x4:15,f:10,c:25, boton:{tam:5, op:-5}},
+    equilibrado: {g:0,p:0,x2:0,x4:0,f:0,c:0, boton: {tam:0, op:0}},
+    camper: {g:-10,p:-15,x2:-12,x4:-10,f:5,c:-20, boton:{tam:8, op:10}},
+    headshot: {g:-5,p:10,x2:8,x4:5,f:15,c:-10, boton:{tam:-6, op:5}}
+  },
+  experiencia: {
+    principiante: {g:-15,p:-20,x2:-18,x4:-15,f:-20,c:-25, boton:{tam:10, op:-10}},
+    intermedio: {g:0,p:0,x2:0,x4:0,f:0,c:0, boton: {tam:0, op:0}},
+    avanzado: {g:10,p:12,x2:10,x4:8,f:10,c:15, boton:{tam:-3, op:3}},
+    pro: {g:20,p:25,x2:22,x4:18,f:20,c:30, boton:{tam:-8, op:8}}
+  },
+  competitivo: {
+    casual: {g:0,p:0,x2:0,x4:0,f:0,c:0, boton:{tam:0, op:0}},
+    ranked: {g:5,p:7,x2:6,x4:5,f:6,c:8, boton:{tam:-2, op:3}},
+    torneo: {g:10,p:12,x2:11,x4:9,f:10,c:15, boton:{tam:-4, op:5}}
+  }
+};
+
+/* TOAST */
+function showToast(message = "¡Copiado!") {
+  const toast = document.getElementById('toast');
+  toast.textContent = message;
+  toast.classList.add('show');
+  setTimeout(() => {
+    toast.classList.remove('show');
+  }, 2000);
+}
+function copiar(valor) {
+  navigator.clipboard.writeText(valor.toString());
+  showToast('¡' + valor + ' copiado!');
+}
+
+/* COPIAR CONFIG */
+function copiarTodo() {
+  const listaValores = Array.from(document.querySelectorAll('#configuracion-lista .sensibilidad-item span:last-child'))
+    .map(s => s.textContent.trim().split(' ')[0]);
+  if (!listaValores.length) {
+    showToast('Genera una sensi primero');
+    return;
+  }
+
+  const modelo = document.getElementById('modelo-celular').value;
+  const botonTexto = document.getElementById('boton-lado').textContent + ' | ' +
+                     document.getElementById('boton-tamano').textContent + ' | ' +
+                     document.getElementById('boton-opacidad').textContent + '%';
+
+  let texto = 'Modelo: ' + modelo + '\\nSensi: ' + listaValores.join(' | ') + '\\nBotón: ' + botonTexto;
+  navigator.clipboard.writeText(texto);
+  showToast('¡Configuración completa copiada!');
+}
+
+function copiarWhatsApp() {
+  const listaValores = Array.from(document.querySelectorAll('#configuracion-lista .sensibilidad-item span:last-child'))
+    .map(s => s.textContent.trim().split(' ')[0]);
+  if (listaValores.length < 6) {
+    showToast('Genera una sensi primero');
+    return;
+  }
+
+  const modeloSel = document.getElementById('modelo-celular');
+  const estiloSel = document.getElementById('estilo-juego');
+  const expSel = document.getElementById('nivel-experiencia');
+  const compSel = document.getElementById('modo-competitivo');
+
+  const modeloTexto = modeloSel.options[modeloSel.selectedIndex].text;
+  const estiloTexto = estiloSel.options[estiloSel.selectedIndex].text;
+  const expTexto = expSel.options[expSel.selectedIndex].text;
+  const compTexto = compSel.options[compSel.selectedIndex].text;
+
+  const dpi = document.getElementById('dpi-valor').textContent || '-';
+  const botonLado = document.getElementById('boton-lado').textContent || '-';
+  const botonTam = document.getElementById('boton-tamano').textContent || '-';
+  const botonOp = document.getElementById('boton-opacidad').textContent || '-';
+
+  const texto =
+`📱 CALMATEX SENSI
+📌 Modelo: ${modeloTexto}
+🎮 Estilo: ${estiloTexto} | ${expTexto} | ${compTexto}
+🎯 General: ${listaValores[0]} | Precisión: ${listaValores[1]} | x2: ${listaValores[2]} | x4: ${listaValores[3]} | Franco: ${listaValores[4]} | Cámara: ${listaValores[5]}
+🖱 DPI: ${dpi}
+🔘 Botón: ${botonLado} | Tamaño: ${botonTam} | Opacidad: ${botonOp}%`;
+
+  navigator.clipboard.writeText(texto);
+  showToast('Formato WhatsApp copiado');
+}
+
+/* PRESETS */
+function loadPresetsFromStorage() {
+  try {
+    const raw = localStorage.getItem(PRESETS_KEY);
+    presets = raw ? JSON.parse(raw) : [];
+  } catch (e) {
+    console.error('Error leyendo presets', e);
+    presets = [];
+  }
+}
+function savePresetsToStorage() {
+  try {
+    localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
+  } catch (e) {
+    console.error('Error guardando presets', e);
+  }
+}
+function renderPresets() {
+  const section = document.getElementById('presets-section');
+  const list = document.getElementById('presets-list');
+  if (!section || !list) return;
+
+  if (!presets.length) {
+    section.style.display = 'none';
+    list.innerHTML = '';
+    return;
+  }
+
+  section.style.display = 'block';
+  list.innerHTML = '';
+
+  presets.forEach(preset => {
+    const div = document.createElement('div');
+    div.className = 'preset-item';
+
+    const fecha = new Date(preset.createdAt || preset.id).toLocaleString('es-PE', {
+      day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
+    });
+
+    div.innerHTML = `
+      <div class="preset-name">
+        <strong>${preset.nombre}</strong>
+        <div class="preset-meta">${fecha}</div>
+      </div>
+      <div class="preset-actions">
+        <button data-id="${preset.id}" data-action="aplicar">Aplicar</button>
+        <button data-id="${preset.id}" data-action="eliminar">Eliminar</button>
+      </div>
+    `;
+
+    const actions = div.querySelector('.preset-actions');
+    actions.addEventListener('click', (e) => {
+      const btn = e.target.closest('button');
+      if (!btn) return;
+      const id = Number(btn.getAttribute('data-id'));
+      const action = btn.getAttribute('data-action');
+      if (action === 'aplicar') {
+        applyPreset(id);
+      } else if (action === 'eliminar') {
+        deletePreset(id);
+      }
+    });
+
+    list.appendChild(div);
+  });
+}
+function guardarPresetActual() {
+  const resultado = document.getElementById('resultado');
+  if (!resultado || resultado.style.display === 'none') {
+    showToast('Primero genera una sensi');
+    return;
+  }
+
+  const modeloSel = document.getElementById('modelo-celular');
+  const estiloSel = document.getElementById('estilo-juego');
+  const expSel = document.getElementById('nivel-experiencia');
+  const compSel = document.getElementById('modo-competitivo');
+
+  const modelo = modeloSel.value;
+  const estilo = estiloSel.value;
+  const experiencia = expSel.value;
+  const competitivo = compSel.value;
+
+  const modeloTexto = modeloSel.options[modeloSel.selectedIndex].text;
+  const estiloTexto = estiloSel.options[estiloSel.selectedIndex].text;
+  const expTexto = expSel.options[expSel.selectedIndex].text;
+  const compTexto = compSel.options[compSel.selectedIndex].text;
+
+  const nombre = `${modeloTexto} | ${estiloTexto} | ${expTexto}`;
+
+  const preset = {
+    id: Date.now(),
+    modelo,
+    estilo,
+    experiencia,
+    competitivo,
+    nombre,
+    createdAt: new Date().toISOString()
+  };
+
+  presets.unshift(preset);
+  if (presets.length > 25) presets = presets.slice(0, 25);
+
+  savePresetsToStorage();
+  renderPresets();
+  showToast('Preset guardado');
+}
+function applyPreset(id) {
+  const preset = presets.find(p => p.id === id);
+  if (!preset) return;
+
+  document.getElementById('modelo-celular').value = preset.modelo;
+  document.getElementById('estilo-juego').value = preset.estilo;
+  document.getElementById('nivel-experiencia').value = preset.experiencia;
+  document.getElementById('modo-competitivo').value = preset.competitivo;
+
+  generarSensi();
+  showToast('Preset aplicado');
+}
+function deletePreset(id) {
+  presets = presets.filter(p => p.id !== id);
+  savePresetsToStorage();
+  renderPresets();
+  showToast('Preset eliminado');
+}
+
+/* GENERAR SENSI */
+function generarSensi() {
+  const modelo = document.getElementById('modelo-celular').value;
+  const estilo = document.getElementById('estilo-juego').value;
+  const experiencia = document.getElementById('nivel-experiencia').value;
+  const competitivo = document.getElementById('modo-competitivo').value;
+
+  const base = configs[modelo];
+  if (!base) return;
+
+  const modEstilo = mods.estilo[estilo];
+  const modExp = mods.experiencia[experiencia];
+  const modComp = mods.competitivo[competitivo];
+
+  const finalSensi = {};
+  const keys = ['g','p','x2','x4','f','c'];
+
+  keys.forEach(k => {
+    const raw =
+      base.sensi[k] +
+      (modEstilo?.[k] || 0) +
+      (modExp?.[k] || 0) +
+      (modComp?.[k] || 0);
+    finalSensi[k] = Math.max(0, Math.min(200, Math.round(raw)));
+  });
+
+  const baseBoton = base.boton;
+  const botonTam = Math.max(40, Math.min(100,
+    baseBoton.tam +
+    (modEstilo.boton?.tam || 0) +
+    (modExp.boton?.tam || 0) +
+    (modComp.boton?.tam || 0)
+  ));
+  const botonOp = Math.max(20, Math.min(100,
+    baseBoton.op +
+    (modEstilo.boton?.op || 0) +
+    (modExp.boton?.op || 0) +
+    (modComp.boton?.op || 0)
+  ));
+
+  document.getElementById('dpi-info').style.display = 'block';
+  document.getElementById('dpi-valor').textContent = base.dpi;
+
+  document.getElementById('boton-info').style.display = 'block';
+  document.getElementById('boton-lado').textContent = baseBoton.lado.toUpperCase();
+  document.getElementById('boton-tamano').textContent = botonTam;
+  document.getElementById('boton-opacidad').textContent = botonOp;
+
+  const hudInfo = document.getElementById('hud-info');
+  hudInfo.style.display = 'block';
+  if (estilo === 'rush') {
+    hudInfo.textContent = 'HUD recomendado: botones cerca del pulgar derecho, mira y agacharse accesibles para rush.';
+  } else if (estilo === 'headshot') {
+    hudInfo.textContent = 'HUD recomendado: botón de disparo más alto, cómodo para arrastrar hacia la cabeza.';
+  } else if (estilo === 'camper') {
+    hudInfo.textContent = 'HUD recomendado: prioriza comodidad y visión, botones un poco más alejados.';
+  } else {
+    hudInfo.textContent = 'HUD equilibrado: mezcla entre control rápido y comodidad en todas las posiciones.';
+  }
+
+  const lista = document.getElementById('configuracion-lista');
+  lista.innerHTML = '';
+
+  const nombres = [
+    { key: 'g', label: 'General' },
+    { key: 'p', label: 'Precisión' },
+    { key: 'x2', label: 'Mira x2' },
+    { key: 'x4', label: 'Mira x4' },
+    { key: 'f', label: 'Francotirador' },
+    { key: 'c', label: 'Cámara' }
+  ];
+
+  nombres.forEach(({key, label}, i) => {
+    const item = document.createElement('div');
+    item.className = 'sensibilidad-item';
+    item.style.animationDelay = (i * 0.05) + 's';
+    item.innerHTML = `
+      <span>${label}</span>
+      <span>${finalSensi[key]}
+        <button class="copy-btn" type="button">COPIAR</button>
+      </span>
+    `;
+    const btn = item.querySelector('.copy-btn');
+    btn.addEventListener('click', () => copiar(finalSensi[key]));
+    lista.appendChild(item);
+    requestAnimationFrame(() => item.classList.add('reveal'));
+  });
+
+  const xitada = document.getElementById('sensi-xitada');
+  const xitadaLista = document.getElementById('sensi-xitada-lista');
+  const packBrLista = document.getElementById('pack-br-lista');
+
+  xitada.style.display = 'block';
+  xitada.classList.add('xitado-active');
+
+  const xitadaPresets = {
+    g: Math.min(200, finalSensi.g + 25),
+    p: Math.min(200, finalSensi.p + 20),
+    x2: Math.min(200, finalSensi.x2 + 22),
+    x4: Math.min(200, finalSensi.x4 + 18),
+    f: Math.min(200, finalSensi.f + 18),
+    c: Math.min(200, finalSensi.c + 25)
+  };
+
+  xitadaLista.innerHTML = '';
+  Object.entries(xitadaPresets).forEach(([k,val], i) => {
+    const label = nombres.find(n => n.key === k)?.label || k;
+    const item = document.createElement('div');
+    item.className = 'sensibilidad-item';
+    item.style.animationDelay = (i * 0.05) + 's';
+    item.innerHTML = `
+      <span>${label}</span>
+      <span>${val}</span>
+    `;
+    xitadaLista.appendChild(item);
+    requestAnimationFrame(() => item.classList.add('reveal'));
+  });
+
+  packBrLista.innerHTML = `
+    <div class="pack-br-item">🔥 General: ${Math.min(200, xitadaPresets.g + 5)}</div>
+    <div class="pack-br-item">🎯 Mira x2: ${Math.min(200, xitadaPresets.x2 + 3)}</div>
+    <div class="pack-br-item">💥 Mira x4: ${Math.min(200, xitadaPresets.x4 + 3)}</div>
+    <div class="pack-br-item">🎯 Franco: ${Math.min(200, xitadaPresets.f + 2)}</div>
+  `;
+
+  document.getElementById('resultado').style.display = 'block';
+
+  const copiarXitadaBtn = document.getElementById('copiar-xitada-btn');
+  copiarXitadaBtn.onclick = () => {
+    const txt = Object.values(xitadaPresets).join(' | ');
+    navigator.clipboard.writeText(txt);
+    showToast('¡Sensi Xitada copiada!');
+  };
+}
+
+/* FONDO ANIMADO */
+const bgAnimation = document.getElementById('bg-animation');
+const particleCount = window.innerWidth < 768 ? 40 : 80;
+for (let i = 0; i < particleCount; i++) {
+  const p = document.createElement('div');
+  p.classList.add('particle');
+  p.style.width = (Math.random() * 4 + 1) + 'px';
+  p.style.height = p.style.width;
+  p.style.left = (Math.random() * 100) + '%';
+  p.style.animationDelay = (Math.random() * 6) + 's';
+  p.style.animationDuration = (Math.random() * 8 + 4) + 's';
+  bgAnimation.appendChild(p);
+}
+for (let i = 0; i < 5; i++) {
+  const line = document.createElement('div');
+  line.classList.add('line');
+  line.style.top = (Math.random() * 100) + '%';
+  line.style.animationDelay = (Math.random() * 4) + 's';
+  line.style.animationDuration = (Math.random() * 3 + 3) + 's';
+  bgAnimation.appendChild(line);
+}
+
+/* PLAYER READY */
+function onPlayerReady(event) {
+  generateMusicList();
+  generateVideoEmbeds('videos-list');
+
+  const musicToggle = document.getElementById('music-toggle');
+  const musicIcon = document.getElementById('music-icon');
+  const musicTriggerArea = document.querySelector('.music-trigger-area');
+  const volumeControl = document.getElementById('volume-control');
+  const volumeSlider = document.getElementById('volume-slider');
+
+  const btnPrev = document.getElementById('prev-track');
+  const btnNext = document.getElementById('next-track');
+  const btnShuffle = document.getElementById('shuffle-track');
+  const toggleLyricsBtn = document.getElementById('toggle-lyrics');
+  const closeLyricsBtn = document.getElementById('close-lyrics');
+
+  musicIcon.innerHTML = pauseIcon;
+  musicToggle.setAttribute('aria-pressed', 'true');
+  player.setVolume(50);
+  volumeSlider.value = 50;
+  currentTrackIndex = 0;
+  updateActiveTrack();
+  updateNowPlaying();
+  updatePlayButtonThumb();
+
+  let hideTimeout;
+  function showButton() {
+    musicToggle.classList.remove('hidden');
+    volumeControl.classList.remove('hidden');
+    clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+      musicToggle.classList.add('hidden');
+      volumeControl.classList.add('hidden');
+    }, 3000);
+  }
+  function resetHideTimeout() {
+    clearTimeout(hideTimeout);
+    hideTimeout = setTimeout(() => {
+      musicToggle.classList.add('hidden');
+      volumeControl.classList.add('hidden');
+    }, 3000);
+  }
+
+  musicTriggerArea.addEventListener('mouseenter', showButton);
+  musicToggle.addEventListener('mouseenter', resetHideTimeout);
+  volumeControl.addEventListener('mouseenter', resetHideTimeout);
+
+  volumeSlider.addEventListener('input', function () {
+    player.setVolume(volumeSlider.value);
+    resetHideTimeout();
+  });
+
+  musicToggle.addEventListener('click', function () {
+    if (isPlaying) {
+      player.pauseVideo();
+    } else {
+      if (currentTrackIndex >= 0) {
+        player.playVideo();
+      }
+    }
+    resetHideTimeout();
+  });
+
+  btnPrev.addEventListener('click', () => {
+    prevTrack();
+    resetHideTimeout();
+  });
+  btnNext.addEventListener('click', () => {
+    nextTrack();
+    resetHideTimeout();
+  });
+  btnShuffle.addEventListener('click', () => {
+    shuffleTrack();
+    resetHideTimeout();
+  });
+
+  toggleLyricsBtn.addEventListener('click', () => {
+    const panel = document.getElementById('lyrics-panel');
+    if (panel.classList.contains('open')) {
+      closeLyricsPanel();
+    } else if (currentTrackIndex >= 0) {
+      const track = musicTracks[currentTrackIndex];
+      openLyricsPanelForTrack(track);
+    }
+  });
+  closeLyricsBtn.addEventListener('click', closeLyricsPanel);
+
+  hideTimeout = setTimeout(() => {
+    musicToggle.classList.add('hidden');
+    volumeControl.classList.add('hidden');
+  }, 3000);
+
+  document.getElementById('menu-toggle').addEventListener('click', toggleMenu);
+  document.getElementById('menu-overlay').addEventListener('click', closeMenu);
+  document.getElementById('btn-videos').addEventListener('click', openVideos);
+  document.getElementById('close-videos').addEventListener('click', closeVideos);
+
+  document.getElementById('generar-sensibilidad').addEventListener('click', () => {
+    const btn = document.getElementById('generar-sensibilidad');
+    btn.classList.add('loading');
+    setTimeout(() => {
+      generarSensi();
+      btn.classList.remove('loading');
+    }, 400);
+  });
+  document.getElementById('copiar-todo-btn').addEventListener('click', copiarTodo);
+  document.getElementById('copiar-whatsapp-btn').addEventListener('click', copiarWhatsApp);
+  document.getElementById('guardar-preset-btn').addEventListener('click', guardarPresetActual);
+
+  loadPresetsFromStorage();
+  renderPresets();
+}
+
+/* ICONO PLAY DEFAULT */
+window.addEventListener('load', () => {
+  const musicIcon = document.getElementById('music-icon');
+  if (musicIcon) musicIcon.innerHTML = playIcon;
+});
+</script>
+</body>
+</html>
