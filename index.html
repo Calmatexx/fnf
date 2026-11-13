@@ -1,2945 +1,1130 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>CALMATEX - Generador de Sensibilidad Free Fire</title>
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>NOVA — Reproductor de música</title>
 <style>
-:root {
-  /* Discord Checkpoint-ish palette */
-  --discord-green: #3bff8f;
-  --discord-green-2: #00ff88;
-  --discord-ink: #070a0f;
-  --discord-ink-2: #0b1220;
-  --discord-line: rgba(59, 255, 143, 0.35);
-  --discord-line-2: rgba(59, 255, 143, 0.15);
+ :root{
+ --bg:#05050a;--surface:rgba(255,255,255,.045);--surface-2:rgba(255,255,255,.08);
+ --stroke:rgba(255,255,255,.09);--txt:#eceeff;--dim:#82869e;
+ --acc:#7b5cff;--acc2:#00e6ff;--acc3:#ff2fa0;--radius:18px;--player-h:92px;
+ }
+ *{box-sizing:border-box;margin:0;padding:0}
+ html,body{height:100%}
+ body{background:var(--bg);color:var(--txt);font-family:ui-sans-serif,system-ui,"Segoe UI",Inter,sans-serif;overflow:hidden;-webkit-font-smoothing:antialiased}
+ ::selection{background:var(--acc);color:#fff}
+ button{font:inherit;color:inherit;background:none;border:0;cursor:pointer}
+ svg.i{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+ .aurora{position:fixed;inset:-20%;z-index:0;filter:blur(90px);opacity:.55;pointer-events:none}
+ .aurora span{position:absolute;border-radius:50%;mix-blend-mode:screen;animation:float 26s ease-in-out infinite}
+ .aurora span:nth-child(1){width:46vw;height:46vw;left:-8vw;top:-6vw;background:radial-gradient(circle,#5b2bff,transparent 68%)}
+ .aurora span:nth-child(2){width:40vw;height:40vw;right:-6vw;top:12vh;background:radial-gradient(circle,#00b8ff,transparent 68%);animation-delay:-9s}
+ .aurora span:nth-child(3){width:38vw;height:38vw;left:28vw;bottom:-12vh;background:radial-gradient(circle,#ff1f8f,transparent 68%);animation-delay:-16s}
+ @keyframes float{0%,100%{transform:translate3d(0,0,0) scale(1)}33%{transform:translate3d(6vw,-4vh,0) scale(1.15)}66%{transform:translate3d(-5vw,5vh,0) scale(.9)}}
+ .grid-lines{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.35;background-image:linear-gradient(rgba(255,255,255,.05) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,.05) 1px,transparent 1px);background-size:64px 64px;mask-image:radial-gradient(circle at 50% 0%,#000 0%,transparent 78%)}
+ .app{position:relative;z-index:1;height:calc(100vh - var(--player-h));display:grid;grid-template-columns:250px minmax(0,1fr) 300px;gap:12px;padding:12px}
+ .panel-glass{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(255,255,255,.02));border:1px solid var(--stroke);border-radius:var(--radius);backdrop-filter:blur(22px) saturate(140%)}
+ .sidebar{display:flex;flex-direction:column;padding:18px 14px;overflow:hidden}
+ .brand{display:flex;align-items:center;gap:10px;padding:4px 8px 22px}
+ .logo{width:34px;height:34px;border-radius:11px;display:grid;place-items:center;background:conic-gradient(from 140deg,var(--acc),var(--acc2),var(--acc3),var(--acc));box-shadow:0 0 26px rgba(123,92,255,.55)}
+ .logo svg{stroke:#fff;stroke-width:2.2;width:17px;height:17px}
+ .brand h1{font-size:16px;letter-spacing:.32em;font-weight:700}
+ .brand small{display:block;font-size:9px;letter-spacing:.24em;color:var(--dim);margin-top:3px}
+ .nav{display:flex;flex-direction:column;gap:2px;margin-bottom:20px}
+ .nav button{display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:11px;color:var(--dim);font-size:13.5px;font-weight:500;transition:.18s;text-align:left}
+ .nav button:hover{background:var(--surface);color:var(--txt)}
+ .nav button.on{color:var(--txt);background:linear-gradient(90deg,rgba(123,92,255,.28),rgba(123,92,255,.05));box-shadow:inset 2px 0 0 var(--acc)}
+ .nav button.on svg{stroke:var(--acc2)}
+ .side-label{font-size:10px;letter-spacing:.22em;color:var(--dim);padding:0 12px;margin-bottom:10px}
+ .playlists{overflow-y:auto;flex:1;display:flex;flex-direction:column;gap:2px}
+ .playlists button{display:flex;gap:10px;align-items:center;padding:8px 12px;border-radius:9px;font-size:12.5px;color:var(--dim);transition:.15s;text-align:left}
+ .playlists button:hover{background:var(--surface);color:var(--txt)}
+ .dot{width:6px;height:6px;border-radius:50%;background:var(--acc2);opacity:.7;flex:none}
+ .side-foot{margin-top:14px;padding:12px;border-radius:12px;background:var(--surface);border:1px solid var(--stroke)}
+ .side-foot p{font-size:10.5px;line-height:1.5;color:var(--dim)}
+ .side-foot b{color:var(--acc2);font-weight:600;display:block;font-size:11px;letter-spacing:.1em;margin-bottom:4px}
+ main{overflow-y:auto;padding:0 6px 24px;scrollbar-width:thin}
+ main::-webkit-scrollbar,.playlists::-webkit-scrollbar,.panel::-webkit-scrollbar{width:8px}
+ main::-webkit-scrollbar-thumb,.playlists::-webkit-scrollbar-thumb,.panel::-webkit-scrollbar-thumb{background:var(--surface-2);border-radius:99px}
+ .topbar{position:sticky;top:0;z-index:6;display:flex;gap:12px;align-items:center;padding:14px 0;background:linear-gradient(180deg,rgba(5,5,10,.92),rgba(5,5,10,0))}
+ .search{flex:1;display:flex;align-items:center;gap:10px;padding:11px 16px;border-radius:99px;background:var(--surface);border:1px solid var(--stroke);transition:.2s}
+ .search:focus-within{border-color:rgba(123,92,255,.65);box-shadow:0 0 0 4px rgba(123,92,255,.13)}
+ .search svg{color:var(--dim);flex:none}
+ .search input{flex:1;background:none;border:0;outline:0;color:var(--txt);font-size:13.5px}
+ .search input::placeholder{color:var(--dim)}
+ .btn-ghost{padding:9px 15px;border-radius:99px;border:1px solid var(--stroke);font-size:12px;letter-spacing:.08em;color:var(--dim);transition:.2s}
+ .btn-ghost:hover{color:var(--txt);border-color:rgba(0,230,255,.5);box-shadow:0 0 20px rgba(0,230,255,.18)}
+ .avatar{width:36px;height:36px;border-radius:50%;background:linear-gradient(140deg,var(--acc),var(--acc3));display:grid;place-items:center;font-size:12px;font-weight:700;border:1px solid rgba(255,255,255,.25)}
+ .hero{position:relative;overflow:hidden;border-radius:24px;padding:34px;margin:6px 0 30px;background:linear-gradient(115deg,rgba(123,92,255,.35),rgba(255,47,160,.16) 46%,rgba(0,230,255,.16));border:1px solid rgba(255,255,255,.13)}
+ .hero:after{content:"";position:absolute;inset:0;background:radial-gradient(circle at 82% 20%,rgba(255,255,255,.22),transparent 46%)}
+ .tag{display:inline-flex;align-items:center;gap:7px;font-size:10px;letter-spacing:.2em;padding:6px 12px;border-radius:99px;background:rgba(0,0,0,.4);border:1px solid rgba(255,255,255,.2)}
+ .tag i{width:5px;height:5px;border-radius:50%;background:#00ff9d;box-shadow:0 0 10px #00ff9d;animation:pulse 1.8s infinite}
+ @keyframes pulse{50%{opacity:.25}}
+ .hero h2{position:relative;font-size:clamp(26px,4vw,44px);line-height:1.02;letter-spacing:-.02em;margin:16px 0 12px;max-width:16ch;font-weight:800}
+ .hero h2 em{font-style:normal;background:linear-gradient(90deg,var(--acc2),#fff 60%,var(--acc3));-webkit-background-clip:text;background-clip:text;color:transparent}
+ .hero p{position:relative;color:#cfd2ea;font-size:13.5px;max-width:46ch;line-height:1.6}
+ .hero-actions{position:relative;display:flex;gap:10px;margin-top:22px}
+ .btn-main{padding:12px 24px;border-radius:99px;font-size:13px;font-weight:700;letter-spacing:.06em;color:#08060f;background:linear-gradient(100deg,#fff,#cfd6ff);box-shadow:0 8px 30px rgba(255,255,255,.22);transition:.2s}
+ .btn-main:hover{transform:translateY(-2px);box-shadow:0 12px 38px rgba(0,230,255,.4)}
+ .btn-out{padding:12px 22px;border-radius:99px;font-size:13px;letter-spacing:.06em;border:1px solid rgba(255,255,255,.32)}
+ .btn-out:hover{background:rgba(255,255,255,.1)}
+ .sec-head{display:flex;align-items:center;justify-content:space-between;margin:0 0 14px}
+ .sec-head h3{font-size:17px;letter-spacing:-.01em;font-weight:700}
+ .sec-head span{font-size:11px;letter-spacing:.14em;color:var(--dim);cursor:pointer}
+ .sec-head span:hover{color:var(--acc2)}
+ section{margin-bottom:34px}
+ .row-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(158px,1fr));gap:14px}
+ .card{position:relative;padding:12px;border-radius:16px;background:var(--surface);border:1px solid transparent;transition:.22s;cursor:pointer;overflow:hidden}
+ .card:hover{background:var(--surface-2);border-color:var(--stroke);transform:translateY(-4px)}
+ .cover{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;display:grid;place-items:center;font-size:34px;font-weight:800;letter-spacing:-.04em;color:rgba(255,255,255,.9);margin-bottom:11px;background:linear-gradient(140deg,#7b5cff,#2a0f6b)}
+ .cover img{width:100%;height:100%;object-fit:cover;display:block}
+ .c1{background:linear-gradient(140deg,#7b5cff,#2a0f6b)}.c2{background:linear-gradient(140deg,#00e6ff,#003a52)}
+ .c3{background:linear-gradient(140deg,#ff2fa0,#4a0430)}.c4{background:linear-gradient(140deg,#ffb64d,#5a2c00)}
+ .c5{background:linear-gradient(140deg,#2bffb1,#00382a)}.c6{background:linear-gradient(140deg,#b06bff,#1d0033)}
+ .card h4{font-size:13px;font-weight:600;margin-bottom:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .card p{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .card .play{position:absolute;right:12px;bottom:58px;width:40px;height:40px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(140deg,var(--acc),var(--acc3));box-shadow:0 8px 24px rgba(123,92,255,.6);opacity:0;transform:translateY(10px) scale(.9);transition:.22s}
+ .card:hover .play{opacity:1;transform:none}
+ .card .play svg{fill:#fff;stroke:none;width:15px;height:15px}
+ .row-artists{display:grid;grid-template-columns:repeat(auto-fill,minmax(124px,1fr));gap:14px}
+ .artist{text-align:center;cursor:pointer}
+ .artist .av{aspect-ratio:1;border-radius:50%;display:grid;place-items:center;font-weight:800;font-size:24px;margin-bottom:10px;position:relative;overflow:hidden;transition:.25s;border:1px solid var(--stroke)}
+ .artist:hover .av{transform:scale(1.05);box-shadow:0 0 0 3px rgba(0,230,255,.35)}
+ .artist h4{font-size:12.5px;font-weight:600}
+ .artist p{font-size:10.5px;color:var(--dim);letter-spacing:.1em;text-transform:uppercase}
+ .tracks{display:flex;flex-direction:column;gap:2px}
+ .track{display:grid;grid-template-columns:26px 44px minmax(0,1fr) auto 46px;gap:14px;align-items:center;padding:8px 12px;border-radius:11px;cursor:pointer;transition:.15s}
+ .track:hover{background:var(--surface)}
+ .track .num{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+ .track .mini{width:44px;height:44px;border-radius:9px;overflow:hidden;background:#111}
+ .track .mini img{width:100%;height:100%;object-fit:cover;display:block}
+ .track h5{font-size:13.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .track p{font-size:11.5px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .track .dur{font-size:12px;color:var(--dim);font-variant-numeric:tabular-nums}
+ .track.on h5,.track.on .num{color:var(--acc2)}
+ .track .eq{display:none;gap:2px;align-items:flex-end;height:14px}
+ .track.on .eq{display:flex}.track.on .num{display:none}
+ .eq i{width:2px;background:var(--acc2);animation:bar .9s ease-in-out infinite}
+ .eq i:nth-child(2){animation-delay:.15s}.eq i:nth-child(3){animation-delay:.3s}.eq i:nth-child(4){animation-delay:.45s}
+ @keyframes bar{0%,100%{height:4px}50%{height:14px}}
+ .panel{padding:18px 14px;display:flex;flex-direction:column;gap:16px;overflow:hidden}
+ .panel-head{display:flex;align-items:center;justify-content:space-between;font-size:11px;letter-spacing:.2em;color:var(--dim)}
+ .viz{display:flex;align-items:flex-end;gap:3px;height:74px;padding:12px;border-radius:12px;background:rgba(0,0,0,.3);border:1px solid var(--stroke)}
+ .viz i{flex:1;border-radius:2px;background:linear-gradient(180deg,var(--acc2),var(--acc));height:8%;transition:height .18s}
+ .queue{overflow-y:auto;display:flex;flex-direction:column;gap:2px;flex:1}
+ .q-item{display:flex;gap:10px;align-items:center;padding:8px;border-radius:10px;cursor:pointer;transition:.15s}
+ .q-item:hover{background:var(--surface)}
+ .q-item .cover{width:36px;height:36px;aspect-ratio:1;border-radius:8px;font-size:12px;margin:0;flex:none}
+ .q-item h6{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .q-item p{font-size:10.5px;color:var(--dim)}
+ .player{position:fixed;left:0;right:0;bottom:0;height:var(--player-h);z-index:20;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.35fr) minmax(0,1fr);align-items:center;gap:20px;padding:0 22px;background:rgba(8,8,14,.82);backdrop-filter:blur(30px) saturate(160%);border-top:1px solid var(--stroke)}
+ .np{display:flex;align-items:center;gap:12px;min-width:0}
+ .np .cover{width:52px;height:52px;aspect-ratio:1;border-radius:11px;margin:0;font-size:17px;flex:none}
+ .np h5{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .np p{font-size:11px;color:var(--dim);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .np .badge{font-size:8.5px;letter-spacing:.14em;color:#ff5d5d;border:1px solid rgba(255,93,93,.4);padding:2px 6px;border-radius:4px;margin-top:5px;display:inline-block}
+ .heart{margin-left:6px;color:var(--dim);transition:.2s}
+ .heart.on{color:var(--acc3)}
+ .controls{display:flex;flex-direction:column;gap:8px;align-items:center}
+ .ctrl-row{display:flex;align-items:center;gap:18px}
+ .ctrl-row button{color:var(--dim);transition:.18s;display:grid;place-items:center}
+ .ctrl-row button:hover{color:var(--txt)}
+ .ctrl-row button.on{color:var(--acc2)}
+ .play-btn{width:44px;height:44px;border-radius:50%;background:#fff;color:#07070d!important;display:grid;place-items:center;box-shadow:0 0 26px rgba(255,255,255,.3);transition:.2s}
+ .play-btn:hover{transform:scale(1.07);box-shadow:0 0 34px rgba(0,230,255,.6)}
+ .play-btn svg{fill:currentColor;stroke:none;width:17px;height:17px}
+ .bar-row{display:flex;align-items:center;gap:10px;width:100%;max-width:520px}
+ .bar-row span{font-size:10.5px;color:var(--dim);font-variant-numeric:tabular-nums;width:34px;text-align:center}
+ .bar{flex:1;height:4px;border-radius:99px;background:rgba(255,255,255,.14);cursor:pointer;position:relative}
+ .bar .fill{height:100%;border-radius:99px;background:linear-gradient(90deg,var(--acc),var(--acc2));width:0%;position:relative}
+ .bar .fill:after{content:"";position:absolute;right:-5px;top:50%;transform:translateY(-50%);width:11px;height:11px;border-radius:50%;background:#fff;opacity:0;transition:.15s;box-shadow:0 0 12px var(--acc2)}
+ .bar:hover .fill:after{opacity:1}
+ .right-ctrl{display:flex;align-items:center;justify-content:flex-end;gap:14px;color:var(--dim)}
+ .right-ctrl button:hover{color:var(--txt)}
+ .vol{width:88px;height:4px;border-radius:99px;background:rgba(255,255,255,.14);cursor:pointer}
+ .vol .fill{height:100%;border-radius:99px;background:var(--txt);width:70%}
+ .toast{position:fixed;bottom:calc(var(--player-h) + 16px);left:50%;transform:translate(-50%,20px);z-index:40;padding:11px 20px;border-radius:99px;font-size:12px;letter-spacing:.05em;background:rgba(0,230,255,.12);border:1px solid rgba(0,230,255,.4);color:#bff4ff;backdrop-filter:blur(14px);opacity:0;pointer-events:none;transition:.3s}
+ .toast.show{opacity:1;transform:translate(-50%,0)}
+ .view{display:none}.view.on{display:block}
+ .overlay{position:fixed;inset:0;z-index:50;background:rgba(3,3,8,.75);backdrop-filter:blur(18px);display:none;align-items:center;justify-content:center;padding:24px}
+ .overlay.on{display:flex}
+ .sheet{width:min(560px,100%);max-height:80vh;overflow:auto;background:rgba(12,12,20,.94);border:1px solid var(--stroke);border-radius:20px;padding:22px}
+ .sheet h3{font-size:15px;letter-spacing:.14em;color:var(--acc2);margin-bottom:14px;display:flex;justify-content:space-between;align-items:center}
+ .sheet p.lyr{font-size:14px;line-height:1.9;white-space:pre-wrap;color:#d6d9ee}
+ .sheet input{width:100%;padding:11px 14px;border-radius:10px;background:rgba(255,255,255,.06);border:1px solid var(--stroke);color:var(--txt);outline:0;font-size:13px}
+ @media(max-width:1180px){.app{grid-template-columns:230px minmax(0,1fr)}.panel{display:none}}
+ @media(max-width:780px){.app{grid-template-columns:minmax(0,1fr);padding:8px}.sidebar{display:none}.player{grid-template-columns:1fr auto;padding:0 12px}.controls{order:-1;grid-column:1/-1}.right-ctrl{display:none}.hero{padding:24px}}
 
-  /* Keep your existing semantic vars mapped to the new palette */
-  --primary: var(--discord-green-2);
-  --secondary: #00d1ff;
-  --dark: var(--discord-ink);
-  --darker: #050510;
-  --accent: #8b5cf6;
-}
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-}
-body {
-  font-family: 'Roboto', sans-serif;
-  color: #e5e7eb;
-  overflow-x: hidden;
-  min-height: 100vh;
-  position: relative;
+ #yt-host{position:fixed;z-index:15;left:-9999px;top:0;width:320px;height:180px;border-radius:12px;overflow:hidden;background:#000}
+ #yt-host iframe{width:100%;height:100%;border:0;display:block}
+ body.stage-on #yt-host{z-index:45}
+ .stage-close{position:fixed;top:14px;right:14px;z-index:46;display:none;background:rgba(0,0,0,.6);border:1px solid var(--stroke);border-radius:50%;width:40px;height:40px;place-items:center}
+ body.stage-on .stage-close{display:grid}
+ .vidslot{aspect-ratio:16/9;border-radius:12px;background:#000 linear-gradient(140deg,#111,#05050a);border:1px solid var(--stroke);flex:none}
+ .empty{font-size:12px;color:var(--dim);padding:10px}
+ .heart.on svg{fill:currentColor}
+ .viz i{animation:bar2 .9s ease-in-out infinite alternate;animation-play-state:paused;transition:none;height:10%}
+ body.playing .viz i{animation-play-state:running}
+ @keyframes bar2{from{height:8%}to{height:95%}}
+ .queue{min-height:0}
+ :focus-visible{outline:2px solid var(--acc2);outline-offset:2px}
+ .app{height:calc(100vh - var(--player-h));height:calc(100dvh - var(--player-h))}
+ @media(prefers-reduced-motion:reduce){.aurora span,.eq i,.viz i{animation:none}}
+ @media(max-width:780px){.app{grid-template-rows:auto minmax(0,1fr)}.sidebar{display:block;padding:6px}.sidebar .brand,.side-label,.playlists,.side-foot{display:none}.nav{flex-direction:row;margin:0;overflow-x:auto}.nav button{white-space:nowrap}}
 
-  /* Deep dark base + Discord-y green glow */
-  background:
-    radial-gradient(900px 420px at 15% 30%, rgba(59, 255, 143, 0.18), transparent 60%),
-    radial-gradient(780px 520px at 85% 65%, rgba(59, 255, 143, 0.12), transparent 65%),
-    linear-gradient(180deg, #05070c, #05070c);
+ .mini-prog,.bnav,.sn{display:none}
+ .bar::before,.vol::before{content:"";position:absolute;inset:-12px 0}.vol{position:relative}.bar,.vol{touch-action:none}
+ .sn-top{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top,0px) + 10px) 0 10px;font-size:10px;letter-spacing:.22em;color:var(--dim)}
+ .sn-top button{width:40px;height:40px;display:grid;place-items:center}
+ #sheetSlot{aspect-ratio:16/9;width:100%;margin:0 auto;border-radius:14px;background:#000;transition:width .25s}
+ .sn:not([data-t=vid]) #sheetSlot{width:48%}
+ .sn-tabs{display:flex;gap:6px;margin:12px 0}
+ .sn-tabs button{flex:1;padding:8px 0;border-radius:99px;font-size:12px;background:var(--surface);color:var(--dim)}
+ .sn-tabs button.on{background:#fff;color:#08060f;font-weight:700}
+ .sn-body{flex:1;min-height:0;display:flex;flex-direction:column}
+ .sn-pane{display:none;flex:1;min-height:0;overflow-y:auto;position:relative}.sn-pane.on{display:block}
+ .ln{padding:7px 0;font-size:21px;font-weight:700;line-height:1.3;color:rgba(255,255,255,.3);transition:.25s;cursor:pointer}
+ .ln.on{color:#fff;text-shadow:0 0 22px rgba(0,230,255,.55);transform:translateX(4px)}
+ .ln.plain{font-size:15px;font-weight:500;color:#d6d9ee;cursor:default}
+ #lyrLines{padding:40% 0}
+ .xrow{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+ .xrow button{display:flex;flex-direction:column;gap:4px;align-items:flex-start;padding:14px;border-radius:14px;background:var(--surface);border:1px solid var(--stroke);font-size:11px;color:var(--dim)}
+ .xrow button span{color:var(--acc2);font-size:15px;font-weight:700}
+ .q-item.cur h6{color:var(--acc2)}
+ .sn-info{display:flex;align-items:center;gap:10px;padding:12px 0 4px}
+ .sn-info>div{flex:1}.sn-info h5{font-size:16px;font-weight:700;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.sn-info p{font-size:12px;color:var(--dim)}
+ .sn .bar-row{max-width:none}.sn-ctrl{justify-content:space-between;padding:14px 8px 18px}.sn-ctrl .play-btn{width:60px;height:60px}.sn-ctrl .play-btn svg{width:22px;height:22px}
+ body.sheet-on #yt-host{z-index:31}
+ @media(max-width:780px){
+  :root{--player-h:66px;--nav-h:56px}
+  .app{height:calc(100dvh - var(--player-h) - var(--nav-h) - env(safe-area-inset-bottom,0px));grid-template-rows:minmax(0,1fr)}
+  .sidebar{display:none}
+  .player{bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));grid-template-columns:minmax(0,1fr) auto;gap:8px;padding:0 10px}
+  .controls{order:0;grid-column:auto}.controls .bar-row,#shuffle,#repeat,#prev{display:none}
+  .np .badge,.np .heart{display:none}.np .cover{width:44px;height:44px}
+  .mini-prog{display:block;position:absolute;top:0;left:0;right:0;height:2px;background:rgba(255,255,255,.12)}
+  .mini-prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--acc),var(--acc2))}
+  .bnav{display:flex;position:fixed;left:0;right:0;bottom:0;z-index:21;height:calc(var(--nav-h) + env(safe-area-inset-bottom,0px));padding-bottom:env(safe-area-inset-bottom,0px);background:rgba(8,8,14,.92);backdrop-filter:blur(24px);border-top:1px solid var(--stroke)}
+  .bnav button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;font-size:10px;color:var(--dim)}
+  .bnav button.on{color:var(--acc2)}
+  .toast{bottom:calc(var(--player-h) + var(--nav-h) + 16px)}
+  .sn{display:flex;position:fixed;inset:0;z-index:30;flex-direction:column;padding:0 16px env(safe-area-inset-bottom,0px);background:linear-gradient(180deg,hsl(var(--h,260) 55% 24%),#05050a 72%);transform:translateY(100%);visibility:hidden;transition:transform .35s cubic-bezier(.2,.8,.2,1),visibility 0s .35s}
+  body.sheet-on .sn{transform:none;visibility:visible;transition:transform .35s cubic-bezier(.2,.8,.2,1)}
+  .btn-ghost{padding:9px 11px;font-size:11px}.hero h2{font-size:28px}.row-cards{grid-template-columns:repeat(2,1fr)}
+  .track{grid-template-columns:22px 44px minmax(0,1fr) 34px;gap:10px}.track .dur{display:none}
+ }
 
-  /* Dot-matrix + subtle scanlines */
-  background-image:
-    radial-gradient(circle, rgba(59,255,143,0.22) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(255,255,255,0.03) 1px, transparent 1px),
-    radial-gradient(900px 420px at 15% 30%, rgba(59, 255, 143, 0.18), transparent 60%),
-    radial-gradient(780px 520px at 85% 65%, rgba(59, 255, 143, 0.12), transparent 65%),
-    linear-gradient(180deg, #05070c, #05070c);
-  background-size:
-    10px 10px,
-    100% 6px,
-    auto,
-    auto,
-    auto;
-  background-position:
-    0 0,
-    0 0,
-    0 0,
-    0 0,
-    0 0;
-}
-.bg-animation {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  pointer-events: none;
-  z-index: 0;
-}
-.particle {
-  position: absolute;
-  background: var(--primary);
-  border-radius: 50%;
-  opacity: 0;
-  animation: float 6s infinite ease-in-out;
-  box-shadow: 0 0 10px var(--primary);
-}
-@keyframes float {
-  0%, 100% { transform: translateY(0) scale(0) rotate(0deg); opacity: 0; }
-  50% { transform: translateY(-100vh) scale(1) rotate(180deg); opacity: 0.6; }
-}
-.line {
-  position: absolute;
-  height: 1px;
-  background: linear-gradient(to right, transparent, var(--secondary), transparent);
-  animation: scan 4s linear infinite;
-  box-shadow: 0 0 5px var(--secondary);
-}
-@keyframes scan {
-  0% { transform: translateX(-100%) scaleX(0.5); opacity: 0; }
-  50% { opacity: 1; }
-  100% { transform: translateX(200%) scaleX(1.5); opacity: 0; }
-}
-.container {
-  max-width: 1180px;
-  margin: 0 auto;
-  padding: 20px;
-  position: relative;
-  z-index: 10;
-}
+ body{font-family:"Outfit",ui-sans-serif,system-ui,"Segoe UI",sans-serif}
+ .art{position:absolute;inset:0;overflow:hidden;border-radius:inherit;background:#0a0a14}
+ .vidslot,#sheetSlot{position:relative;overflow:hidden}
+ .art-bg{position:absolute;inset:-25%;background:linear-gradient(140deg,hsl(var(--h,260) 70% 40%),#05050a);background-size:cover;background-position:center;filter:blur(26px) saturate(1.5) brightness(.8);animation:kb 20s ease-in-out infinite alternate}
+ @keyframes kb{to{transform:scale(1.18) rotate(4deg)}}
+ .art-cv{position:absolute;inset:0;width:100%;height:100%}
+ .art-disc{position:absolute;left:50%;top:50%;height:64%;aspect-ratio:1;transform:translate(-50%,-50%) scale(calc(1 + var(--b,0)*.05));border-radius:50%;overflow:hidden;border:3px solid rgba(255,255,255,.35);box-shadow:0 0 40px hsl(var(--h,260) 90% 60% / .55),inset 0 0 30px rgba(0,0,0,.5);background:#111}
+ .art-disc>*{width:100%;height:100%;object-fit:cover;display:grid;place-items:center;font-size:42px;font-weight:800;background:linear-gradient(140deg,hsl(var(--h,260) 80% 55%),#1a0a3a);animation:spin 16s linear infinite;animation-play-state:paused}
+ body.playing .art-disc>*{animation-play-state:running}
+ .art-disc:after{content:"";position:absolute;left:50%;top:50%;width:12%;aspect-ratio:1;transform:translate(-50%,-50%);border-radius:50%;background:#05050a;border:2px solid rgba(255,255,255,.4)}
+ @keyframes spin{to{transform:rotate(360deg)}}
+ .off-card{padding:20px;border-radius:18px;margin-bottom:18px;background:linear-gradient(135deg,rgba(0,230,255,.12),rgba(123,92,255,.14));border:1px solid rgba(255,255,255,.14)}
+ .off-card b{font-size:16px}.off-card p{font-size:12.5px;line-height:1.6;color:#b9bdd8;margin:8px 0 16px}
+ .track.loc{grid-template-columns:26px 44px minmax(0,1fr) auto 34px 46px}
+ .del{color:var(--dim);font-size:22px;width:34px}.del:hover{color:#ff6b6b}
+ .panel-glass{box-shadow:0 20px 60px -30px rgba(123,92,255,.55),inset 0 1px 0 rgba(255,255,255,.08)}
+ .hero{background-size:200% 200%;animation:hue 14s ease-in-out infinite alternate;box-shadow:0 30px 80px -40px rgba(123,92,255,.8)}
+ @keyframes hue{to{background-position:100% 50%}}
+ .hero h2{font-size:clamp(30px,5vw,54px);font-weight:800}
+ .sec-head h3{display:flex;align-items:center;gap:10px;font-size:19px}
+ .sec-head h3:before{content:"";width:4px;height:18px;border-radius:4px;background:linear-gradient(var(--acc2),var(--acc3))}
+ .card{background:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border-color:var(--stroke)}
+ .card:hover{box-shadow:0 22px 44px -22px rgba(123,92,255,.8);border-color:rgba(0,230,255,.35)}
+ .cover:after{content:"";position:absolute;inset:0;background:linear-gradient(135deg,rgba(255,255,255,.28),transparent 45%)}
+ .track{border-radius:14px}.track.on{background:linear-gradient(90deg,rgba(123,92,255,.25),transparent);box-shadow:inset 3px 0 var(--acc2)}
+ .player{background:linear-gradient(180deg,rgba(14,12,30,.9),rgba(6,6,12,.95));box-shadow:0 -10px 40px -20px rgba(123,92,255,.7)}
+ .play-btn{background:linear-gradient(140deg,#fff,#d7ddff)}
+ .btn-main{background:linear-gradient(100deg,#fff,#bdf3ff 50%,#e2c9ff)}
+ .sn{background:radial-gradient(circle at 80% 0%,hsl(var(--h,260) 90% 45% / .45),transparent 55%),radial-gradient(circle at 0% 60%,hsl(calc(var(--h,260) + 80) 90% 40% / .3),transparent 55%),#05050a!important}
+ .sn:not([data-t=vid]) #sheetSlot{width:56%}
+ .ln.on{font-size:23px}
+ @media(max-width:780px){.bnav button span{font-size:9.5px}}
 
-header {
-  text-align: center;
-  margin-bottom: 40px;
-  padding: 30px 0;
-  animation: headerSlideIn 1s ease-out;
-}
-@keyframes headerSlideIn {
-  from { opacity: 0; transform: translateY(-50px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.logo {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 4rem;
-  font-weight: 900;
-  background: linear-gradient(45deg, var(--primary), var(--secondary), var(--accent));
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  text-shadow: 0 0 30px rgba(0, 255, 136, 0.5);
-  letter-spacing: 3px;
-  animation: glow 2s ease-in-out infinite alternate, pulseText 4s ease-in-out infinite;
-}
-@keyframes glow {
-  from { text-shadow: 0 0 20px rgba(0, 255, 136, 0.5); }
-  to { text-shadow: 0 0 40px rgba(0, 255, 136, 0.8), 0 0 60px rgba(0, 209, 255, 0.6); }
-}
-@keyframes pulseText {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.02); }
-}
-.subtitle {
-  font-size: 1.3rem;
-  color: rgba(229,231,235,0.75);
-  margin-top: 10px;
-  font-weight: 300;
-  animation: fadeInUp 1.5s ease-out;
-}
-@keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-.nav-buttons {
-  display: flex;
-  justify-content: center;
-  gap: 15px;
-  margin-bottom: 20px;
-}
-.btn-nav {
-  padding: 10px 20px;
-  background: rgba(0,0,0,0.35);
-  border: 1px solid var(--discord-line);
-  color: white;
-  border: none;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 500;
-  font-family: 'Orbitron', sans-serif;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.45), 0 0 0 1px rgba(59,255,143,0.12) inset;
-  position: relative;
-  overflow: hidden;
-}
-.btn-nav::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: left 0.5s;
-}
-.btn-nav:hover::before {
-  left: 100%;
-}
-.btn-nav:hover {
-  transform: translateY(-2px) rotate(2deg);
-  box-shadow: 0 8px 20px rgba(0, 209, 255, 0.5);
-}
-.main-content {
-  transition: opacity 0.5s ease;
-}
-.main-content.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
+ #yt-host iframe{position:absolute;left:50%;top:50%;width:118%;height:118%;transform:translate(-50%,-50%);pointer-events:none}
+ .veil{position:absolute;inset:0;background:#05050a center/cover no-repeat;opacity:0;pointer-events:none;transition:opacity .35s}
+ .veil:after{content:"";position:absolute;inset:0;background:linear-gradient(180deg,rgba(0,0,0,.15),rgba(0,0,0,.45))}
+ body:not(.playing) .veil{opacity:1}
 
-/* SECCIÓN VIDEOS FULLSCREEN */
-.videos-full-section {
-  display: none;
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  background: var(--dark);
-  z-index: 40;
-  overflow-y: auto;
-  padding: 20px;
-  animation: fadeIn 0.5s ease-out;
-}
-.videos-full-section.open {
-  display: block;
-}
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-.videos-full-header {
-  text-align: center;
-  padding: 20px 0;
-  border-bottom: 1px solid rgba(0, 255, 136, 0.2);
-}
-.close-videos-btn {
-  position: absolute;
-  top: 20px;
-  right: 20px;
-  background: rgba(255, 0, 0, 0.7);
-  color: white;
-  border: none;
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  cursor: pointer;
-  font-size: 1.2rem;
-  transition: all 0.3s ease;
-  animation: spinIn 0.5s ease-out;
-}
-@keyframes spinIn {
-  from { transform: rotate(-180deg) scale(0); opacity: 0; }
-  to { transform: rotate(0deg) scale(1); opacity: 1; }
-}
-.close-videos-btn:hover {
-  background: #ff0000;
-  transform: scale(1.1) rotate(90deg);
-}
-.videos-full-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 25px;
-  margin-top: 20px;
-  padding: 10px;
-}
+ .spot{position:fixed;inset:0;z-index:0;pointer-events:none;background:radial-gradient(520px circle at var(--mx,50%) var(--my,30%),rgba(0,230,255,.10),transparent 62%)}
+ #fx{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.75}
+ .aurora{filter:blur(90px) hue-rotate(calc((var(--h,260) - 260)*1deg));transition:filter 1.5s}
+ .brand h1,.hero h2,.sec-head h3,.tag,.side-label,.panel-head,.btn-main,.btn-out,.btn-ghost,.sn-top,.off-card b{font-family:"Orbitron","Outfit",sans-serif}
+ .hero h2{font-size:clamp(24px,4.4vw,46px);letter-spacing:0;max-width:18ch}
+ .sec-head h3{font-size:16px;letter-spacing:.06em;text-transform:uppercase}
+ .hero h2 em{background-size:200% 100%;animation:flow 5s linear infinite}
+ @keyframes flow{to{background-position:200% 0}}
+ @keyframes rise{from{opacity:0;transform:translateY(18px) scale(.98)}}
+ @keyframes glow{50%{box-shadow:0 0 44px rgba(0,230,255,.85)}}
+ @keyframes rip{to{transform:scale(1);opacity:0}}
+ @keyframes glitch{0%{text-shadow:2px 0 var(--acc3),-2px 0 var(--acc2);transform:translateX(1px)}50%{text-shadow:-2px 0 var(--acc3),2px 0 var(--acc2);transform:translateX(-1px)}100%{text-shadow:none}}
+ .logo{animation:glow 3s ease-in-out infinite}.brand h1:hover{animation:glitch .3s steps(2) 3}
+ .view.on>*{animation:rise .6s cubic-bezier(.2,.8,.2,1) backwards}
+ .track,.card{animation:rise .55s cubic-bezier(.2,.8,.2,1) backwards}
+ .track:nth-child(2),.card:nth-child(2){animation-delay:0.090s}.track:nth-child(3),.card:nth-child(3){animation-delay:0.135s}.track:nth-child(4),.card:nth-child(4){animation-delay:0.180s}.track:nth-child(5),.card:nth-child(5){animation-delay:0.225s}.track:nth-child(6),.card:nth-child(6){animation-delay:0.270s}.track:nth-child(7),.card:nth-child(7){animation-delay:0.315s}.track:nth-child(8),.card:nth-child(8){animation-delay:0.360s}.track:nth-child(9),.card:nth-child(9){animation-delay:0.405s}.track:nth-child(10),.card:nth-child(10){animation-delay:0.450s}.track:nth-child(11),.card:nth-child(11){animation-delay:0.495s}.track:nth-child(12),.card:nth-child(12){animation-delay:0.540s}
+ .hero .tag{position:relative}
+ .hero .floor{position:absolute;left:-20%;right:-20%;bottom:-30px;height:65%;pointer-events:none;opacity:.5;transform:perspective(260px) rotateX(62deg);transform-origin:bottom;background:repeating-linear-gradient(90deg,rgba(0,230,255,.35) 0 1px,transparent 1px 46px),repeating-linear-gradient(0deg,rgba(0,230,255,.35) 0 1px,transparent 1px 46px);animation:floor 2.6s linear infinite;-webkit-mask-image:linear-gradient(transparent,#000);mask-image:linear-gradient(transparent,#000)}
+ @keyframes floor{to{background-position:0 46px,0 46px}}
+ .off-card{position:relative}
+ .hero:before{content:"";position:absolute;inset:8px;pointer-events:none;z-index:2;opacity:.75;border-radius:14px;background:linear-gradient(var(--acc2),var(--acc2)) 0 0/18px 2px,linear-gradient(var(--acc2),var(--acc2)) 0 0/2px 18px,linear-gradient(var(--acc2),var(--acc2)) 100% 0/18px 2px,linear-gradient(var(--acc2),var(--acc2)) 100% 0/2px 18px,linear-gradient(var(--acc2),var(--acc2)) 0 100%/18px 2px,linear-gradient(var(--acc2),var(--acc2)) 0 100%/2px 18px,linear-gradient(var(--acc2),var(--acc2)) 100% 100%/18px 2px,linear-gradient(var(--acc2),var(--acc2)) 100% 100%/2px 18px;background-repeat:no-repeat}.off-card:before{content:"";position:absolute;inset:8px;pointer-events:none;z-index:2;opacity:.75;border-radius:14px;background:linear-gradient(var(--acc2),var(--acc2)) 0 0/18px 2px,linear-gradient(var(--acc2),var(--acc2)) 0 0/2px 18px,linear-gradient(var(--acc2),var(--acc2)) 100% 0/18px 2px,linear-gradient(var(--acc2),var(--acc2)) 100% 0/2px 18px,linear-gradient(var(--acc2),var(--acc2)) 0 100%/18px 2px,linear-gradient(var(--acc2),var(--acc2)) 0 100%/2px 18px,linear-gradient(var(--acc2),var(--acc2)) 100% 100%/18px 2px,linear-gradient(var(--acc2),var(--acc2)) 100% 100%/2px 18px;background-repeat:no-repeat}
+ .card{transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg))}
+ .card:hover{transform:perspective(700px) rotateX(var(--rx,0deg)) rotateY(var(--ry,0deg)) translateY(-4px)}
+ .card:before{content:"";position:absolute;inset:0;z-index:1;pointer-events:none;border-radius:inherit;background:radial-gradient(200px circle at var(--gx,50%) var(--gy,0%),rgba(255,255,255,.16),transparent 60%);opacity:0;transition:.2s}
+ .card:hover:before{opacity:1}
+ .nav button.on{box-shadow:inset 2px 0 0 var(--acc2),0 0 26px -10px var(--acc2)}
+ .nav button svg{transition:.25s}.nav button:hover svg{transform:scale(1.18) rotate(-6deg)}
+ .btn-main,.btn-out,.btn-ghost,.nav button{position:relative;overflow:hidden}
+ .ripple{position:absolute;border-radius:50%;background:rgba(255,255,255,.4);transform:scale(0);animation:rip .6s ease-out forwards;pointer-events:none}
+ .bar .fill,.mini-prog i{background:linear-gradient(90deg,var(--acc),var(--acc2),var(--acc3),var(--acc2));background-size:200% 100%;animation:flow 3s linear infinite;box-shadow:0 0 12px rgba(0,230,255,.6)}
+ .player:after{content:"";position:absolute;top:-1px;left:0;right:0;height:1px;pointer-events:none;background:linear-gradient(90deg,transparent,var(--acc2),var(--acc3),transparent);background-size:200% 100%;animation:flow 4s linear infinite;opacity:.7}
+ .play-btn{position:relative}
+ .play-btn:before{content:"";position:absolute;inset:-6px;border-radius:50%;background:conic-gradient(var(--acc),var(--acc2),var(--acc3),var(--acc));-webkit-mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));mask:radial-gradient(farthest-side,transparent calc(100% - 2.5px),#000 calc(100% - 2px));opacity:0;transition:opacity .4s;animation:spin 3s linear infinite;filter:drop-shadow(0 0 6px var(--acc2))}
+ body.playing .play-btn:before{opacity:1}
+ @media(prefers-reduced-motion:reduce){#fx{display:none}.hero .floor,.hero h2 em,.logo,.bar .fill,.player:after,.play-btn:before,.view.on>*,.track,.card{animation:none}}
 
-/* FILTROS DE VIDEO POR GÉNERO */
-.video-filters {
-  margin-top: 12px;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  justify-content: center;
-}
-.video-filter-btn {
-  padding: 6px 12px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,255,136,0.4);
-  background: rgba(0,0,0,0.4);
-  color: #9fffd0;
-  font-size: 0.8rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-.video-filter-btn:hover,
-.video-filter-btn.active {
-  background: var(--primary);
-  color: #000;
-  box-shadow: 0 0 10px rgba(0,255,136,0.6);
-}
-
-/* CARDS GENERALES */
-.card {
-  background: rgba(10, 10, 26, 0.85);
-  border-radius: 20px;
-  padding: 30px;
-  margin-bottom: 25px;
-  border: 1px solid rgba(0, 255, 136, 0.2);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-  animation: cardSlideIn 0.8s ease-out forwards;
-  opacity: 0;
-  transform: translateY(30px);
-}
-.card:nth-child(1) { animation-delay: 0.1s; }
-.card:nth-child(2) { animation-delay: 0.2s; }
-.card:nth-child(3) { animation-delay: 0.3s; }
-@keyframes cardSlideIn {
-  to { opacity: 1; transform: translateY(0); }
-}
-#resultado {
-  opacity: 1 !important;
-  transform: translateY(0) !important;
-  animation: fadeInUp 0.6s ease-out, glowBorder 2s ease-in-out infinite alternate !important;
-  backdrop-filter: blur(8px);
-  border: 1px solid transparent;
-  background:
-    linear-gradient(var(--dark), var(--darker)) padding-box,
-    linear-gradient(45deg, var(--primary), var(--secondary), var(--accent)) border-box;
-}
-.card.processing {
-  position: relative;
-  overflow: hidden;
-}
-.card.processing::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.2), transparent);
-  animation: scanGlow 1.5s infinite;
-  pointer-events: none;
-}
-@keyframes scanGlow {
-  0% { left: -100%; }
-  100% { left: 100%; }
-}
-.card:hover {
-  transform: translateY(-5px) rotateX(5deg);
-  box-shadow: 0 15px 40px rgba(0, 255, 136, 0.2), 0 0 30px rgba(0, 255, 136, 0.1);
-  border-color: var(--primary);
-}
-h2 {
-  font-family: 'Orbitron', sans-serif;
-  color: var(--primary);
-  margin-bottom: 20px;
-  font-size: 1.6rem;
-  text-align: center;
-  position: relative;
-}
-h2::after {
-  content: '';
-  position: absolute;
-  bottom: -5px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 50px;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--primary), transparent);
-  animation: underlineExpand 1s ease-out;
-}
-@keyframes underlineExpand {
-  from { width: 0; }
-  to { width: 50px; }
-}
-.form-group {
-  margin-bottom: 25px;
-}
-label {
-  display: block;
-  margin-bottom: 10px;
-  font-weight: 500;
-  color: #ccc;
-  font-size: 1.1rem;
-  animation: labelFadeIn 0.5s ease-out;
-}
-@keyframes labelFadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-select {
-  width: 100%;
-  padding: 14px;
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(0, 255, 136, 0.3);
-  border-radius: 10px;
-  color: #fff;
-  font-size: 1rem;
-  transition: all 0.3s ease;
-  position: relative;
-}
-select:focus {
-  outline: none;
-  border-color: var(--primary);
-  box-shadow: 0 0 15px rgba(0, 255, 136, 0.4);
-  transform: scale(1.02);
-}
-select option, select optgroup {
-  background: white;
-  color: black;
-}
-select optgroup option {
-  background: white;
-  color: black;
-}
-select optgroup {
-  color: black;
-}
-.btn-generate {
-  display: block;
-  width: 100%;
-  padding: 16px;
-  margin-top: 20px;
-  background: linear-gradient(180deg, rgba(59,255,143,0.22), rgba(59,255,143,0.08));
-  border: 1px solid rgba(59,255,143,0.45);
-  color: white;
-  border: none;
-  border-radius: 12px;
-  font-size: 1.3rem;
-  font-weight: 600;
-  font-family: 'Orbitron', sans-serif;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 5px 15px rgba(0, 255, 136, 0.4);
-  position: relative;
-  overflow: hidden;
-}
-.btn-generate::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
-  transition: 0.5s;
-}
-.btn-generate:hover::before {
-  left: 100%;
-}
-.btn-generate:hover {
-  transform: translateY(-3px) scale(1.05);
-  box-shadow: 0 10px 25px rgba(0, 255, 136, 0.6);
-}
-.btn-generate.loading {
-  pointer-events: none;
-  opacity: 0.7;
-}
-.btn-generate.loading::after {
-  content: '';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 20px;
-  height: 20px;
-  margin: -10px 0 0 -10px;
-  border: 2px solid transparent;
-  border-top: 2px solid white;
-  border-radius: 50%;
-  animation: spin 1s linear infinite;
-}
-@keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
-}
-
-/* Botones secundarios */
-.btn-secondary {
-  display: inline-block;
-  padding: 10px 14px;
-  margin-top: 10px;
-  margin-right: 8px;
-  background: linear-gradient(45deg, var(--secondary), var(--accent));
-  color: white;
-  border: none;
-  border-radius: 999px;
-  font-size: 0.9rem;
-  font-weight: 500;
-  font-family: 'Orbitron', sans-serif;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 3px 10px rgba(0, 209, 255, 0.3);
-}
-.btn-secondary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(0, 209, 255, 0.5);
-}
-
-#resultado {
-  display: none;
-  margin-top: 20px;
-  padding: 25px;
-  background: rgba(5, 5, 16, 0.9);
-  border-radius: 15px;
-  border: 1px solid var(--primary);
-  animation: fadeInUp 0.6s ease-out, glowBorder 2s ease-in-out infinite alternate;
-}
-@keyframes glowBorder {
-  from { box-shadow: 0 0 10px rgba(0, 255, 136, 0.3); }
-  to { box-shadow: 0 0 20px rgba(0, 255, 136, 0.6); }
-}
-.sensibilidad-item {
-  display: flex;
-  justify-content: space-between;
-  padding: 12px 0;
-  border-bottom: 1px dashed rgba(0, 255, 136, 0.2);
-  font-size: 1.1rem;
-  transition: all 0.3s ease;
-  opacity: 0;
-}
-.sensibilidad-item.reveal {
-  animation: popIn 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
-}
-@keyframes popIn {
-  0% { opacity: 0; transform: scale(0.8); }
-  70% { transform: scale(1.05); }
-  100% { opacity: 1; transform: scale(1); }
-}
-.sensibilidad-item:hover {
-  padding-left: 10px;
-  border-left: 3px solid var(--primary);
-}
-.sensibilidad-item:last-child {
-  border-bottom: none;
-}
-.sensibilidad-item span:first-child {
-  color: #aaa;
-}
-.sensibilidad-item span:last-child {
-  color: var(--primary);
-  font-weight: 600;
-}
-
-/* BLOQUE SENSI XITADA */
-.sensi-xitada-block {
-  margin-top: 25px;
-  padding: 18px;
-  border-radius: 15px;
-  border: 1px solid var(--accent);
-  background: rgba(255, 0, 170, 0.08);
-  box-shadow: 0 0 20px rgba(255, 0, 170, 0.2);
-}
-.sensi-xitada-block h3 {
-  font-family: 'Orbitron', sans-serif;
-  color: var(--accent);
-  font-size: 1.2rem;
-  margin-bottom: 10px;
-  text-align: center;
-}
-.sensi-xitada-block p {
-  font-size: 0.9rem;
-  color: #ddd;
-  text-align: center;
-  margin-bottom: 12px;
-}
-#sensi-xitada-lista .sensibilidad-item span:last-child {
-  color: var(--accent);
-}
-#copiar-xitada-btn {
-  margin-top: 12px;
-  padding: 10px 14px;
-  width: 100%;
-  font-size: 0.95rem;
-  border-radius: 10px;
-  border: 1px solid var(--accent);
-  background: rgba(255, 0, 170, 0.15);
-  color: #fff;
-  cursor: pointer;
-  font-family: 'Orbitron', sans-serif;
-  transition: all 0.3s ease;
-}
-#copiar-xitada-btn:hover {
-  background: var(--accent);
-  color: #000;
-  box-shadow: 0 0 15px rgba(255, 0, 170, 0.7);
-  transform: translateY(-2px) scale(1.02);
-}
-.sensi-xitada-block.xitado-active {
-  animation: xitadoPulse 0.7s ease-in-out;
-}
-@keyframes xitadoPulse {
-  0% { transform: scale(1) rotate(0deg); }
-  25% { transform: scale(1.02) rotate(-1deg); }
-  50% { transform: scale(1.04) rotate(1deg); }
-  75% { transform: scale(1.02) rotate(-1deg); }
-  100% { transform: scale(1) rotate(0deg); }
-}
-
-/* PACK BR */
-.pack-br {
-  margin-top: 8px;
-  font-size: 0.85rem;
-  color: #ccc;
-}
-.pack-br-item {
-  margin-bottom: 3px;
-}
-
-/* HUD PERFECTO */
-.hud-info {
-  background: rgba(0, 209, 255, 0.08);
-  border: 1px solid rgba(0, 209, 255, 0.4);
-  padding: 12px;
-  border-radius: 10px;
-  margin-bottom: 15px;
-  font-size: 0.9rem;
-}
-
-/* DPI + BOTÓN */
-.dpi-recomendado,
-.boton-disparo {
-  background: rgba(0, 209, 255, 0.1);
-  border: 1px solid var(--secondary);
-  padding: 15px;
-  border-radius: 10px;
-  margin-bottom: 20px;
-  text-align: center;
-  font-weight: 500;
-  animation: infoPulse 3s ease-in-out infinite;
-}
-@keyframes infoPulse {
-  0%, 100% { opacity: 1; }
-  50% { opacity: 0.8; }
-}
-.boton-disparo {
-  background: rgba(255, 0, 170, 0.1);
-  border-color: var(--accent);
-}
-.copy-btn {
-  background: rgba(0, 255, 136, 0.2);
-  color: var(--primary);
-  border: 1px solid var(--primary);
-  padding: 6px 12px;
-  border-radius: 6px;
-  font-size: 0.8rem;
-  cursor: pointer;
-  margin-left: 10px;
-  transition: all 0.3s ease;
-}
-.copy-btn:hover {
-  background: var(--primary);
-  color: #000;
-  transform: scale(1.1);
-}
-.copy-btn:active {
-  transform: scale(0.95);
-  background: #00ff88 !important;
-  color: #000 !important;
-  box-shadow: 0 0 10px rgba(0, 255, 136, 0.8);
-}
-
-/* TOAST */
-.toast {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%) translateY(100px);
-  background: rgba(0, 255, 136, 0.9);
-  color: #000;
-  padding: 12px 24px;
-  border-radius: 10px;
-  font-weight: bold;
-  font-family: 'Orbitron', sans-serif;
-  box-shadow: 0 5px 20px rgba(0, 255, 136, 0.5);
-  z-index: 1000;
-  opacity: 0;
-  transition: transform 0.4s ease, opacity 0.4s ease;
-}
-.toast.show {
-  transform: translateX(-50%) translateY(0);
-  opacity: 1;
-}
-
-/* PRESETS */
-.presets-section {
-  margin-top: 20px;
-  padding: 15px;
-  border-radius: 15px;
-  background: rgba(0, 0, 0, 0.35);
-  border: 1px solid rgba(0, 255, 136, 0.2);
-}
-.presets-section h3 {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 1rem;
-  color: var(--primary);
-  margin-bottom: 8px;
-}
-#presets-list {
-  margin-top: 5px;
-}
-.preset-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 6px 0;
-  border-bottom: 1px dashed rgba(0, 255, 136, 0.2);
-  font-size: 0.85rem;
-}
-.preset-item:last-child {
-  border-bottom: none;
-}
-.preset-name {
-  flex: 1;
-  padding-right: 8px;
-}
-.preset-meta {
-  color: #999;
-  font-size: 0.75rem;
-}
-.preset-actions button {
-  border-radius: 999px;
-  border: 1px solid var(--primary);
-  background: transparent;
-  color: var(--primary);
-  font-size: 0.75rem;
-  padding: 4px 8px;
-  cursor: pointer;
-  margin-left: 4px;
-  transition: all 0.2s ease;
-}
-.preset-actions button:hover {
-  background: var(--primary);
-  color: #000;
-}
-
-/* MENU MÚSICA */
-.menu-container {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 280px;
-  height: 100vh;
-  background: rgba(10, 10, 26, 0.95);
-  backdrop-filter: blur(10px);
-  border-right: 1px solid rgba(0, 255, 136, 0.2);
-  transform: translateX(-100%);
-  transition: transform 0.3s ease;
-  z-index: 30;
-  overflow-y: auto;
-}
-.menu-container.open {
-  transform: translateX(0);
-  animation: menuSlideIn 0.3s ease-out;
-}
-@keyframes menuSlideIn {
-  from { transform: translateX(-100%); }
-  to { transform: translateX(0); }
-}
-.menu-toggle {
-  position: fixed;
-  top: 20px;
-  left: 20px;
-  z-index: 31;
-  background: linear-gradient(45deg, var(--primary), var(--secondary));
-  border: none;
-  width: 50px;
-  height: 50px;
-  border-radius: 50%;
-  cursor: pointer;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  align-items: center;
-  gap: 4px;
-  padding: 5px;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-}
-.menu-toggle:hover {
-  transform: scale(1.1) rotate(5deg);
-  box-shadow: 0 0 30px rgba(0, 255, 136, 0.8);
-}
-.menu-toggle span {
-  width: 25px;
-  height: 3px;
-  background: #fff;
-  border-radius: 2px;
-  transition: all 0.3s ease;
-  box-shadow: 0 0 5px rgba(255,255,255,0.5);
-}
-.menu-toggle.open span:nth-child(1) {
-  transform: rotate(45deg) translate(5px, 5px);
-}
-.menu-toggle.open span:nth-child(2) {
-  opacity: 0;
-}
-.menu-toggle.open span:nth-child(3) {
-  transform: rotate(-45deg) translate(7px, -6px);
-}
-.menu-header {
-  padding: 20px;
-  text-align: center;
-  border-bottom: 1px solid rgba(0, 255, 136, 0.2);
-}
-.menu-header h3 {
-  font-family: 'Orbitron', sans-serif;
-  color: var(--primary);
-  font-size: 1.4rem;
-  animation: glow 2s ease-in-out infinite alternate;
-}
-.music-list {
-  padding: 20px 0;
-}
-.music-item {
-  display: flex;
-  align-items: center;
-  padding: 18px 20px;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  border-bottom: 1px solid rgba(0, 255, 136, 0.1);
-  position: relative;
-  overflow: hidden;
-  background: linear-gradient(to right, transparent, rgba(0, 255, 136, 0.02));
-}
-.music-item:last-child {
-  border-bottom: none;
-}
-.music-item::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 0;
-  background: linear-gradient(90deg, transparent, rgba(0, 255, 136, 0.15), transparent);
-  transition: width 0.4s ease;
-}
-.music-item:hover::before,
-.music-item.active::before {
-  width: 100%;
-}
-.music-item:hover,
-.music-item.active {
-  background: rgba(0, 255, 136, 0.12);
-  border-left: 4px solid var(--primary);
-  transform: translateX(8px);
-  box-shadow: 0 2px 10px rgba(0, 255, 136, 0.1);
-}
-.music-icon {
-  font-size: 1.3rem;
-  color: var(--primary);
-  margin-right: 10px;
-  width: 26px;
-  text-align: center;
-}
-.music-thumb {
-  width: 38px;
-  height: 38px;
-  border-radius: 50%;
-  overflow: hidden;
-  margin-right: 12px;
-  flex-shrink: 0;
-  box-shadow: 0 0 10px rgba(0, 255, 136, 0.6);
-  border: 2px solid rgba(0,255,136,0.6);
-}
-.music-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.music-title {
-  flex: 1;
-  font-size: 0.95rem;
-  font-weight: 400;
-  color: #fff;
-  z-index: 1;
-  position: relative;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.music-item:hover .music-title,
-.music-item.active .music-title {
-  color: var(--primary);
-  font-weight: 500;
-}
-.music-duration {
-  margin-left: auto;
-  color: #aaa;
-  font-size: 0.8rem;
-  font-weight: 300;
-  padding-left: 10px;
-  transition: color 0.3s ease;
-}
-.music-item:hover .music-duration,
-.music-item.active .music-duration {
-  color: var(--primary);
-}
-.music-genre {
-  font-size: 0.7rem;
-  padding: 2px 8px;
-  border-radius: 999px;
-  border: 1px solid rgba(0,255,136,0.4);
-  margin-left: 8px;
-  color: #9fffd0;
-}
-
-/* OVERLAY */
-.overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 25;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-}
-.overlay.open {
-  opacity: 1;
-  visibility: visible;
-}
-
-/* BOTÓN MÚSICA + NOW PLAYING */
-.music-player {
-  position: fixed;
-  top: 18px;
-  right: 18px;
-  z-index: 40;
-}
-
-.music-trigger-area {
-  width: 100px;
-  height: 100px;
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-.btn-music {
-  width: 70px;
-  height: 70px;
-  border-radius: 50%;
-  background: linear-gradient(45deg, var(--primary), var(--secondary));
-  color: white;
-  border: none;
-  cursor: pointer;
-  transition: all 0.3s ease, transform 0.5s ease;
-  box-shadow: 0 0 20px rgba(0, 255, 136, 0.5), 0 5px 15px rgba(0, 209, 255, 0.4);
-  position: relative;
-  overflow: hidden;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transform: translateX(0);
-  animation: neon-glow 2s ease-in-out infinite alternate, floatButton 6s ease-in-out infinite;
-}
-
-/* MINIATURA CIRCULAR EN EL BOTÓN */
-.btn-music img#btn-music-thumb {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  border-radius: 50%;
-  z-index: 0;
-  filter: brightness(0.9);
-  transition: transform 0.4s ease, filter 0.3s ease;
-}
-.btn-music.playing img#btn-music-thumb {
-  transform: scale(1.05);
-  filter: brightness(1);
-}
-
-/* MINI LOGO ESTILO YOUTUBE SOBRE LA PORTADA */
-.yt-logo-overlay {
-  position: absolute;
-  bottom: 6px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 32px;
-  height: 20px;
-  border-radius: 6px;
-  background: #ffffff;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1;
-  box-shadow: 0 0 8px rgba(0,0,0,0.7);
-}
-.yt-logo-overlay::before {
-  content: '';
-  width: 0;
-  height: 0;
-  border-left: 9px solid #ff0000;
-  border-top: 6px solid transparent;
-  border-bottom: 6px solid transparent;
-}
-
-/* ÍCONO PLAY/PAUSA SOBRE TODO */
-#music-icon {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: rgba(0, 0, 0, 0.55);
-  box-shadow: 0 0 8px rgba(0, 0, 0, 0.7);
-}
-#music-icon svg {
-  width: 18px;
-  height: 18px;
-}
-
-@keyframes floatButton {
-  0%, 100% { transform: translateY(0) rotate(0deg); }
-  50% { transform: translateY(-5px) rotate(180deg); }
-}
-@keyframes neon-glow {
-  from { box-shadow: 0 0 20px rgba(0, 255, 136, 0.5), 0 5px 15px rgba(0, 209, 255, 0.4); }
-  to { box-shadow: 0 0 30px rgba(0, 255, 136, 0.8), 0 5px 20px rgba(0, 209, 255, 0.6); }
-}
-.btn-music.hidden {
-  transform: translateX(100px);
-}
-.btn-music svg {
-  fill: white;
-  transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.btn-music svg.fade {
-  opacity: 0;
-  transform: scale(0.8) rotate(360deg);
-}
-.btn-music.playing {
-  animation: pulse 2s infinite ease-in-out, rotate-slow 3s linear infinite, neon-glow 2s ease-in-out infinite alternate;
-}
-@keyframes pulse {
-  0%, 100% { transform: scale(1); }
-  50% { transform: scale(1.05); }
-}
-@keyframes rotate-slow {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-.btn-music::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: -100%;
-  width: 100%;
-  height: 100%;
-  background: conic-gradient(from 0deg, transparent, rgba(255,255,255,0.3), transparent);
-  transition: left 0.5s ease;
-}
-.btn-music:hover::before {
-  left: 100%;
-}
-.btn-music:hover {
-  transform: translateY(-3px) scale(1.1) rotate(5deg);
-  box-shadow: 0 0 40px rgba(0, 255, 136, 0.8), 0 5px 25px rgba(0, 209, 255, 0.6);
-}
-.btn-music::after {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 1px;
-  background: linear-gradient(to right, transparent, var(--primary), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-}
-.btn-music:hover::after {
-  opacity: 1;
-  animation: scan-line 1s linear infinite;
-}
-@keyframes scan-line {
-  0% { transform: translateX(-100%); }
-  100% { transform: translateX(100%); }
-}
-.btn-music:active {
-  transform: rotate(10deg);
-  transition: transform 0.1s ease;
-}
-
-/* TARJETA NOW PLAYING */
-.now-playing {
-  margin-top: 8px;
-  background: rgba(0,0,0,0.55);
-  border-radius: 12px;
-  border: 1px solid rgba(0,255,136,0.4);
-  padding: 8px 10px;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  max-width: 260px;
-  box-shadow: 0 0 15px rgba(0,255,136,0.25);
-}
-.now-playing.hidden {
-  display: none;
-}
-.np-thumb {
-  width: 46px;
-  height: 46px;
-  border-radius: 10px;
-  overflow: hidden;
-  flex-shrink: 0;
-  box-shadow: 0 0 12px rgba(0,255,136,0.6);
-}
-.np-thumb img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-.np-info {
-  flex: 1;
-}
-.np-label {
-  font-size: 0.7rem;
-  text-transform: uppercase;
-  letter-spacing: 1px;
-  color: #9fffd0;
-  margin-bottom: 2px;
-}
-.np-title {
-  font-size: 0.85rem;
-  font-weight: 500;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.np-genre {
-  font-size: 0.75rem;
-  color: #aaa;
-}
-
-/* ECUALIZADOR NOW PLAYING */
-.np-eq {
-  display: flex;
-  gap: 2px;
-  height: 18px;
-  align-items: flex-end;
-}
-.np-eq span {
-  width: 3px;
-  border-radius: 3px;
-  background: var(--primary);
-  opacity: 0.5;
-  animation: eqAnim 1s infinite;
-  animation-play-state: paused;
-}
-.np-eq span:nth-child(1) { animation-delay: 0s; }
-.np-eq span:nth-child(2) { animation-delay: 0.1s; }
-.np-eq span:nth-child(3) { animation-delay: 0.2s; }
-.np-eq span:nth-child(4) { animation-delay: 0.3s; }
-.np-eq span:nth-child(5) { animation-delay: 0.4s; }
-.np-eq.active span {
-  animation-play-state: running;
-  opacity: 1;
-}
-@keyframes eqAnim {
-  0%, 100% { height: 4px; }
-  50% { height: 16px; }
-}
-
-/* CONTROLES EXTRA MÚSICA */
-.music-controls {
-  margin-top: 6px;
-  display: flex;
-  gap: 6px;
-  justify-content: flex-end;
-}
-.music-controls button {
-  border: none;
-  border-radius: 999px;
-  padding: 4px 8px;
-  font-size: 0.75rem;
-  cursor: pointer;
-  background: rgba(0, 0, 0, 0.6);
-  color: #9fffd0;
-  border: 1px solid rgba(0,255,136,0.4);
-  transition: all 0.2s ease;
-}
-.music-controls button:hover {
-  background: var(--primary);
-  color: #000;
-  box-shadow: 0 0 10px rgba(0,255,136,0.6);
-}
-
-/* PANEL DE LETRAS TIPO SPOTIFY */
-.lyrics-panel {
-  position: fixed;
-  right: 20px;
-  bottom: 20px;
-  width: 320px;
-  max-height: 55vh;
-  background: rgba(5, 5, 16, 0.96);
-  border-radius: 18px;
-  border: 1px solid rgba(0,255,136,0.5);
-  box-shadow: 0 0 30px rgba(0,255,136,0.4);
-  display: none;
-  flex-direction: column;
-  overflow: hidden;
-  z-index: 50;
-}
-.lyrics-panel.open {
-  display: flex;
-  animation: fadeIn 0.25s ease-out;
-}
-.lyrics-header {
-  padding: 10px 14px;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border-bottom: 1px solid rgba(0,255,136,0.2);
-  background: radial-gradient(circle at 0 0, rgba(0,255,136,0.25), transparent);
-}
-.lyrics-header-title {
-  font-family: 'Orbitron', sans-serif;
-  font-size: 0.9rem;
-  letter-spacing: 1px;
-  text-transform: uppercase;
-  color: var(--primary);
-}
-#lyrics-track-name {
-  font-size: 0.75rem;
-  color: #ccc;
-}
-#close-lyrics {
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 1rem;
-  cursor: pointer;
-}
-.lyrics-body {
-  padding: 10px 14px;
-  overflow-y: auto;
-  scrollbar-width: thin;
-}
-.lyrics-body::-webkit-scrollbar {
-  width: 4px;
-}
-.lyrics-body::-webkit-scrollbar-thumb {
-  background: rgba(0,255,136,0.7);
-  border-radius: 10px;
-}
-.lyrics-line {
-  font-size: 0.9rem;
-  color: #888;
-  margin-bottom: 6px;
-  transition: all 0.25s ease;
-  opacity: 0.6;
-}
-.lyrics-line.active {
-  color: #fff;
-  font-weight: 500;
-  opacity: 1;
-  transform: scale(1.03);
-  text-shadow: 0 0 10px rgba(0,255,136,0.8);
-}
-.lyrics-helper {
-  font-size: 0.7rem;
-  color: #999;
-  padding: 7px 12px 9px;
-  border-top: 1px solid rgba(0,255,136,0.15);
-  background: rgba(0,0,0,0.7);
-}
-
-/* VOLUMEN */
-.volume-control {
-  position: absolute;
-  top: 80px;
-  right: 0;
-  width: 120px;
-  padding: 10px;
-  background: rgba(10, 10, 26, 0.85);
-  border-radius: 10px;
-  border: 1px solid rgba(0, 255, 136, 0.2);
-  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
-  transition: opacity 0.3s ease, transform 0.3s ease;
-  opacity: 1;
-  transform: translateY(0);
-  animation: slideDown 0.3s ease-out;
-}
-@keyframes slideDown {
-  from { transform: translateY(-20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-.volume-control.hidden {
-  opacity: 0;
-  transform: translateY(10px);
-  pointer-events: none;
-}
-.volume-control input[type="range"] {
-  width: 100%;
-  cursor: pointer;
-  -webkit-appearance: none;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 5px;
-  height: 5px;
-  outline: none;
-  transition: background 0.3s ease;
-}
-.volume-control input[type="range"]:hover {
-  background: rgba(0, 255, 136, 0.2);
-}
-.volume-control input[type="range"]::-webkit-slider-thumb {
-  -webkit-appearance: none;
-  width: 15px;
-  height: 15px;
-  background: var(--primary);
-  border-radius: 50%;
-  box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-.volume-control input[type="range"]::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-}
-.volume-control input[type="range"]::-moz-range-thumb {
-  width: 15px;
-  height: 15px;
-  background: var(--primary);
-  border-radius: 50%;
-  box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
-  cursor: pointer;
-  border: none;
-  transition: transform 0.2s ease;
-}
-.volume-control input[type="range"]::-moz-range-thumb:hover {
-  transform: scale(1.2);
-}
-#youtube-player {
-  display: none;
-}
-
-/* VIDEOS INLINE */
-footer {
-  text-align: center;
-  margin-top: 50px;
-  color: #666;
-  font-size: 0.9rem;
-  animation: fadeInUp 2s ease-out;
-}
-.videos-section {
-  margin-top: 30px;
-  display: none;
-}
-.videos-list {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-  gap: 25px;
-  margin-top: 20px;
-  padding: 10px;
-}
-.video-item {
-  text-align: center;
-  background: rgba(10, 10, 26, 0.85);
-  border-radius: 20px;
-  padding: 20px;
-  border: 1px solid rgba(0, 255, 136, 0.2);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
-  backdrop-filter: blur(10px);
-  transition: all 0.3s ease;
-  overflow: hidden;
-  position: relative;
-  animation: cardSlideIn 0.8s ease-out forwards;
-  opacity: 0;
-  transform: translateY(30px);
-}
-.video-item:nth-child(1) { animation-delay: 0.1s; }
-.video-item:nth-child(2) { animation-delay: 0.2s; }
-.video-item:nth-child(3) { animation-delay: 0.3s; }
-.video-item:nth-child(4) { animation-delay: 0.4s; }
-.video-item:hover {
-  transform: translateY(-5px) rotateX(5deg);
-  box-shadow: 0 15px 40px rgba(0, 255, 136, 0.2), 0 0 30px rgba(0, 255, 136, 0.1);
-  border-color: var(--primary);
-}
-.video-item h3 {
-  font-family: 'Orbitron', sans-serif;
-  color: var(--secondary);
-  margin-bottom: 8px;
-  font-size: 1.1rem;
-  text-align: center;
-  text-shadow: 0 0 10px rgba(0, 209, 255, 0.5);
-  position: relative;
-  z-index: 2;
-}
-.video-genre {
-  font-size: 0.75rem;
-  color: #9fffd0;
-  margin-bottom: 10px;
-}
-.video-embed {
-  position: relative;
-  width: 100%;
-  height: 0;
-  padding-bottom: 56.25%;
-  border-radius: 15px;
-  overflow: hidden;
-  box-shadow: 0 5px 20px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease;
-}
-.video-item:hover .video-embed {
-  box-shadow: 0 8px 25px rgba(0, 255, 136, 0.3);
-  transform: scale(1.02);
-}
-.video-embed iframe {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  border: none;
-  border-radius: 15px;
-}
-.video-item::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, transparent, var(--primary), transparent);
-  transform: scaleX(0);
-  transition: transform 0.3s ease;
-}
-.video-item:hover::before {
-  transform: scaleX(1);
-}
-.video-item::after {
-  content: '▶';
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 3rem;
-  color: rgba(0, 255, 136, 0.8);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 1;
-  pointer-events: none;
-}
-.video-item:hover::after {
-  opacity: 1;
-  animation: iconBounce 0.6s ease-out;
-}
-@keyframes iconBounce {
-  0% { transform: translate(-50%, -50%) scale(0); }
-  50% { transform: translate(-50%, -50%) scale(1.2); }
-  100% { transform: translate(-50%, -50%) scale(1); }
-}
-
-/* EFECTO ESPECIAL TRACK NUEVO */
-.special-track-active body,
-.special-track-active {
-  background-image:
-    radial-gradient(circle at 10% 10%, rgba(255, 0, 170, 0.35) 0%, transparent 55%),
-    radial-gradient(circle at 90% 90%, rgba(0, 209, 255, 0.35) 0%, transparent 55%);
-}
-.special-track-active .logo {
-  text-shadow: 0 0 40px rgba(255, 0, 170, 0.9), 0 0 80px rgba(0, 209, 255, 0.9);
-  animation-duration: 1.2s;
-}
-.special-track-active .btn-music {
-  box-shadow: 0 0 40px rgba(255, 0, 170, 0.9), 0 0 40px rgba(0, 255, 136, 0.9);
-}
-.special-track-active .sensi-xitada-block {
-  animation: xitadoPulse 0.6s ease-in-out infinite;
-}
-
-/* RESPONSIVE */
-@media(max-width: 768px) {
-  .videos-list, .videos-full-list {
-    grid-template-columns: 1fr;
-    gap: 20px;
-  }
-  .logo { font-size: 2.8rem; }
-  .container { padding: 15px; }
-  .card { padding: 20px; }
-  .music-player { top: 10px; right: 10px; }
-  .music-trigger-area { width: 80px; height: 80px; }
-  .btn-music { width: 60px; height: 60px; }
-  #music-icon { width: 28px; height: 28px; }
-  #music-icon svg { width: 16px; height: 16px; }
-  .btn-music.hidden { transform: translateX(80px); }
-  .volume-control { top: 70px; width: 100px; }
-  .menu-container { width: 100%; }
-  .menu-toggle { left: 10px; top: 10px; width: 45px; height: 45px; }
-  .menu-toggle span { width: 20px; height: 2px; }
-  .nav-buttons { flex-direction: column; gap: 10px; }
-  .videos-full-list, .videos-list {
-    grid-template-columns: 1fr;
-    gap: 15px;
-    padding: 5px;
-  }
-  .video-item { padding: 15px; border-radius: 15px; }
-  .video-item h3 { font-size: 1.1rem; }
-  .music-item { padding: 16px 18px; }
-  .music-icon { display:none; }
-  .music-thumb { margin-right: 10px; }
-  .now-playing {
-    max-width: 210px;
-    padding: 6px 8px;
-  }
-  .np-title {
-    font-size: 0.8rem;
-  }
-  .lyrics-panel {
-    width: 90%;
-    right: 5%;
-    bottom: 10px;
-  }
-}
-
-.advanced-net {
-  margin-top: 18px;
-  padding: 12px 14px;
-  border-radius: 14px;
-  background: rgba(3, 15, 20, 0.8);
-  border: 1px solid rgba(0, 255, 157, 0.4);
-  box-shadow: 0 0 18px rgba(0, 255, 157, 0.22);
-}
-
-.advanced-net h3 {
-  margin-top: 0;
-  margin-bottom: 4px;
-  font-size: 1rem;
-  color: #7fffd4;
-}
-
-.small-help {
-  font-size: 0.78rem;
-  color: #b0bec5;
-  margin-bottom: 6px;
-}
-
-.net-advice {
-  margin-top: 6px;
-  font-style: italic;
-}
-
-
-.preset-row {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-top: 8px;
-}
-
-.pulse-xitada {
-  animation: pulseXitada 0.4s ease-out;
-}
-
-@keyframes pulseXitada {
-  0% { transform: scale(1); box-shadow: 0 0 18px rgba(0, 255, 157, 0.4); }
-  50% { transform: scale(1.01); box-shadow: 0 0 26px rgba(0, 255, 90, 0.75); }
-  100% { transform: scale(1); box-shadow: 0 0 18px rgba(0, 255, 157, 0.4); }
-}
-
-
-/* LOADER DE ENTRADA */
-.page-loader {
-  position: fixed;
-  inset: 0;
-  background: radial-gradient(circle at top, #020617, #000000);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 9999;
-  transition: opacity 0.4s ease;
-}
-
-.page-loader.hidden {
-  opacity: 0;
-  pointer-events: none;
-}
-
-.loader-inner {
-  text-align: center;
-  padding: 18px 22px;
-  border-radius: 20px;
-  background: rgba(15, 23, 42, 0.95);
-  border: 1px solid rgba(56, 189, 248, 0.6);
-  box-shadow: 0 0 28px rgba(56, 189, 248, 0.35);
-}
-
-.loader-circle {
-  width: 52px;
-  height: 52px;
-  border-radius: 50%;
-  border: 4px solid rgba(148, 163, 184, 0.4);
-  border-top-color: #22c55e;
-  border-right-color: #0ea5e9;
-  animation: spinLoader 1s linear infinite;
-  margin: 0 auto 10px;
-}
-
-.loader-inner p {
-  font-size: 0.9rem;
-  color: #e5e7eb;
-}
-
-@keyframes spinLoader {
-  to { transform: rotate(360deg); }
-}
-
-/* Pequeña animación de entrada para el header y la card principal */
-header {
-  animation: headerSlideIn 0.7s ease-out forwards;
-}
-
-.main-content .card {
-  animation: cardFadeUp 0.8s ease-out forwards;
-}
-
-@keyframes cardFadeUp {
-  from { opacity: 0; transform: translateY(18px); }
-  to { opacity: 1; transform: translateY(0); }
-}
-
-
-@media (max-width: 600px) {
-  .container {
-    padding: 16px 10px;
-  }
-}
-
-@media (max-width: 768px) {
-  .music-player {
-    top: auto;
-    bottom: 14px;
-    right: 16px;
-  }
-}
-
-
-/* === Discord Checkpoint-ish polish (added) === */
-.card {
-  position: relative;
-  overflow: hidden;
-}
-.card::before{
-  content:"";
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  opacity:0.55;
-  background:
-    radial-gradient(circle, rgba(59,255,143,0.16) 1px, transparent 1px);
-  background-size: 10px 10px;
-  mix-blend-mode: screen;
-}
-.card::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  pointer-events:none;
-  background: linear-gradient(180deg, rgba(255,255,255,0.05), transparent 35%, rgba(0,0,0,0.25));
-  opacity:0.7;
-}
-.card > * { position: relative; z-index: 1; }
-
-.btn-nav, .btn-secondary, .btn-generate {
-  backdrop-filter: blur(10px);
-}
-
-.btn-nav:hover {
-  border-color: rgba(59,255,143,0.75);
-  box-shadow: 0 12px 30px rgba(0,0,0,0.5), 0 0 22px rgba(59,255,143,0.25);
-  transform: translateY(-2px);
-}
-
-h2 { color: var(--discord-green); }
-h2::after { background: linear-gradient(90deg, transparent, var(--discord-green), transparent); }
-
+ /* ===== cuadros rediseñados ===== */
+ .tracks{gap:8px}
+ .track{padding:10px 14px;background:linear-gradient(135deg,rgba(255,255,255,.07),rgba(255,255,255,.02));border:1px solid var(--stroke);border-radius:18px;backdrop-filter:blur(10px)}
+ .track:hover{border-color:rgba(0,230,255,.4);background:linear-gradient(135deg,rgba(123,92,255,.2),rgba(0,230,255,.06));transform:translateX(4px)}
+ .track .mini{border-radius:12px;box-shadow:0 8px 20px -8px #000}
+ .track.on{border-color:var(--acc2);box-shadow:0 0 30px -10px var(--acc2),inset 3px 0 var(--acc2)}
+ .card{border-radius:22px;padding:10px}.cover{border-radius:16px}
+ .card:hover{border-color:transparent;box-shadow:0 0 0 1px rgba(0,230,255,.5),0 22px 44px -22px rgba(123,92,255,.9)}
+ .card .play{width:46px;height:46px;right:14px;bottom:62px}
+ .q-item{border:1px solid transparent;border-radius:14px}.q-item .cover{border-radius:10px}
+ .q-item.cur{background:rgba(123,92,255,.22);border-color:rgba(0,230,255,.35)}
+ .player{left:12px;right:12px;bottom:12px;border:1px solid rgba(255,255,255,.13);border-radius:26px;overflow:hidden;box-shadow:0 20px 60px -20px rgba(123,92,255,.85)}
+ .app{height:calc(100vh - var(--player-h) - 14px);height:calc(100dvh - var(--player-h) - 14px)}
+ .np .cover{border-radius:15px;box-shadow:0 0 26px hsl(var(--h,260) 90% 55% / .55)}
+ .ctrl-row button:not(.play-btn){width:36px;height:36px;border-radius:50%}
+ .ctrl-row button:not(.play-btn):hover{background:rgba(255,255,255,.09)}
+ .heart.on svg{animation:pop .45s}@keyframes pop{40%{transform:scale(1.5)}}
+ .fav-strip{display:flex;gap:14px;overflow-x:auto;padding:4px 2px 14px;scroll-snap-type:x mandatory;scrollbar-width:none}
+ .ftile{flex:none;width:132px;scroll-snap-align:start;cursor:pointer}
+ .ftile .fi{position:relative;aspect-ratio:1;border-radius:20px;overflow:hidden;display:grid;place-items:center;font-size:30px;font-weight:800;background:linear-gradient(140deg,var(--acc),var(--acc3));box-shadow:0 16px 32px -14px var(--acc3);transition:.25s}
+ .ftile .fi img{width:100%;height:100%;object-fit:cover}
+ .ftile:hover .fi{transform:translateY(-5px) scale(1.03)}
+ .ftile .fi:after{content:"♥";position:absolute;right:9px;top:6px;font-size:15px;text-shadow:0 0 10px var(--acc3)}
+ .ftile b{display:block;font-size:12.5px;margin-top:9px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ftile i{font-style:normal;font-size:11px;color:var(--dim)}
+ .fb{display:flex;gap:18px;align-items:center;padding:18px;border-radius:26px;margin-bottom:16px;background:linear-gradient(120deg,rgba(255,47,160,.28),rgba(123,92,255,.2),rgba(0,230,255,.1));border:1px solid rgba(255,255,255,.15)}
+ .fb-mosaic{width:104px;height:104px;flex:none;border-radius:20px;overflow:hidden;display:grid;grid-template-columns:1fr 1fr;box-shadow:0 0 40px -6px var(--acc3)}
+ .fb-mosaic>*{width:100%;height:100%;object-fit:cover;background:linear-gradient(140deg,var(--acc),var(--acc3))}
+ .fb small{font-size:10px;letter-spacing:.25em;color:var(--acc2)}.fb h2{font-size:24px;margin:2px 0;font-family:"Orbitron","Outfit",sans-serif}.fb p{font-size:12px;color:#cfd2ea}
+ .fb-act{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}.fb-act button{padding:9px 16px;font-size:11px}
+ /* ===== letras animadas ===== */
+ @property --p{syntax:"<percentage>";inherits:false;initial-value:0%}
+ .ln{font-size:22px;font-weight:800;color:rgba(255,255,255,.5);transform-origin:left center;filter:blur(calc(var(--d,1)*.8px));opacity:calc(1 - var(--d,1)*.15);transform:scale(calc(1 - var(--d,1)*.015));transition:--p .3s linear,filter .5s,opacity .5s,transform .5s cubic-bezier(.2,.8,.2,1)}
+ .ln.on{background:linear-gradient(90deg,#fff var(--p,0%),rgba(255,255,255,.55) var(--p,0%));-webkit-background-clip:text;background-clip:text;color:transparent;-webkit-text-fill-color:transparent;text-shadow:none;filter:drop-shadow(0 0 14px rgba(0,230,255,.65));opacity:1;transform:scale(1.05);animation:lnpop .5s cubic-bezier(.2,.9,.3,1.3)}
+ @keyframes lnpop{from{transform:scale(.9) translateX(-10px);opacity:.3}}
+ .ln.plain{font-size:15px;font-weight:500;color:#d6d9ee;filter:none;opacity:1;transform:none}
+ @media(max-width:780px){
+  .player{left:8px;right:8px;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom,0px) + 8px);border-radius:22px}
+  .app{height:calc(100dvh - var(--player-h) - var(--nav-h) - env(safe-area-inset-bottom,0px) - 16px)}
+  .toast{bottom:calc(var(--player-h) + var(--nav-h) + 30px)}
+  .fb-mosaic{width:84px;height:84px}.fb h2{font-size:19px}.fb{gap:14px}
+ }
+ @media(prefers-reduced-motion:reduce){.ln.on,.heart.on svg{animation:none}}
 </style>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&display=swap" rel="stylesheet">
 </head>
 <body>
 
-<div class="bg-animation" id="bg-animation"></div>
-<div class="overlay" id="menu-overlay"></div>
+<div class="aurora"><span></span><span></span><span></span></div>
+<div class="grid-lines"></div>
+<canvas id="fx"></canvas><div class="spot"></div>
 
-<div class="menu-container" id="menu-container">
-  <div class="menu-header">
-    <h3>Playlist de Música</h3>
-  </div>
-  <div class="music-list" id="music-list"></div>
-</div>
-<button class="menu-toggle" id="menu-toggle" aria-label="Abrir menú de playlist">
-  <span></span><span></span><span></span>
-</button>
+<svg style="display:none">
+ <symbol id="i-bolt" viewBox="0 0 24 24"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></symbol>
+ <symbol id="i-home" viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V21H3z"/><path d="M9 21v-7h6v7"/></symbol>
+ <symbol id="i-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="m15.5 8.5-2 5-5 2 2-5z"/></symbol>
+ <symbol id="i-lib" viewBox="0 0 24 24"><path d="M4 4h4v16H4zM10 4h4v16h-4zM17 5l3 15"/></symbol>
+ <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 20s-7-4.6-7-9.4A4 4 0 0 1 12 7a4 4 0 0 1 7 3.6C19 15.4 12 20 12 20z"/></symbol>
+ <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></symbol>
+ <symbol id="i-play" viewBox="0 0 24 24"><path d="M7 4l13 8-13 8z"/></symbol>
+ <symbol id="i-pause" viewBox="0 0 24 24"><path d="M7 4h4v16H7zM13 4h4v16h-4z"/></symbol>
+ <symbol id="i-prev" viewBox="0 0 24 24"><path d="M18 5v14L8 12zM6 5v14"/></symbol>
+ <symbol id="i-next" viewBox="0 0 24 24"><path d="M6 5v14l10-7zM18 5v14"/></symbol>
+ <symbol id="i-shuffle" viewBox="0 0 24 24"><path d="M17 4l3 3-3 3M17 20l3-3-3-3"/><path d="M4 7h4l8 10h4M4 17h4l2-2.5M14 9.5 16 7h4"/></symbol>
+ <symbol id="i-repeat" viewBox="0 0 24 24"><path d="M4 10V8a3 3 0 0 1 3-3h10l3 3M20 14v2a3 3 0 0 1-3 3H7l-3-3"/></symbol>
+ <symbol id="i-vol" viewBox="0 0 24 24"><path d="M4 9v6h3l5 4V5L7 9z"/><path d="M16 9a4 4 0 0 1 0 6"/></symbol>
+ <symbol id="i-queue" viewBox="0 0 24 24"><path d="M4 6h11M4 12h11M4 18h7M18 13v7l4-3.5z"/></symbol>
+ <symbol id="i-mic" viewBox="0 0 24 24"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></symbol>
+ <symbol id="i-expand" viewBox="0 0 24 24"><path d="M9 3H3v6M15 3h6v6M9 21H3v-6M15 21h6v-6"/></symbol>
+ <symbol id="i-video" viewBox="0 0 24 24"><rect x="2" y="6" width="14" height="12" rx="3"/><path d="m16 11 6-4v10l-6-4z"/></symbol>
+ <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9l2.1 2.1M17 17l2.1 2.1M19.1 4.9 17 7M7 17l-2.1 2.1"/></symbol>
+ <symbol id="i-down" viewBox="0 0 24 24"><path d="m6 9 6 6 6-6"/></symbol>
+ <symbol id="i-share" viewBox="0 0 24 24"><path d="M12 3v12M7 8l5-5 5 5M5 14v6h14v-6"/></symbol>
+ <symbol id="i-moon" viewBox="0 0 24 24"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></symbol>
+ <symbol id="i-gauge" viewBox="0 0 24 24"><path d="M4 17a8 8 0 1 1 16 0M12 17l4-5"/></symbol>
+ <symbol id="i-dl" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></symbol>
+ <symbol id="i-close" viewBox="0 0 24 24"><path d="M5 5l14 14M19 5 5 19"/></symbol>
+</svg>
 
-<div class="container">
-  <header>
-    <h1 class="logo">CALMATEX</h1>
-    <p class="subtitle">Generador Inteligente de Sensibilidad + Botón de Disparo</p>
-    <div class="nav-buttons">
-      <button class="btn-nav" id="btn-videos">🎥 Videos</button>
-    </div>
-  </header>
+<div class="app">
+ <aside class="sidebar panel-glass">
+ <div class="brand"><div class="logo"><svg class="i"><use href="#i-bolt"/></svg></div><div><h1>NOVA</h1><small>MÚSICA</small></div></div>
+ <nav class="nav">
+ <button class="on" data-view="home"><svg class="i"><use href="#i-home"/></svg> Inicio</button>
+ <button data-view="explore"><svg class="i"><use href="#i-compass"/></svg> Explorar</button>
+ <button data-view="favs"><svg class="i"><use href="#i-heart"/></svg> Favoritas</button>
+ <button data-view="off"><svg class="i"><use href="#i-dl"/></svg> Sin internet</button>
+ <button data-view="lib"><svg class="i"><use href="#i-lib"/></svg> Biblioteca</button>
+ </nav>
+ <div class="side-label">TUS PLAYLISTS</div>
+ <div class="playlists" id="playlists"></div>
+ <div class="side-foot"><b>YOUTUBE EN VIVO</b><p>Búsqueda real en YouTube y reproducción con el reproductor oficial. Los anuncios, si los hay, los decide YouTube.</p></div>
+ </aside>
 
-  <div class="music-player">
-    <div class="music-trigger-area">
-      <button class="btn-music" id="music-toggle" aria-label="Reproducir/Pausar música" aria-pressed="false">
-        <!-- Miniatura circular del tema actual -->
-        <img id="btn-music-thumb" src="" alt="Portada de la canción actual">
-        <!-- Mini logo estilo YouTube -->
-        <div class="yt-logo-overlay"></div>
-        <!-- Icono play/pausa -->
-        <span id="music-icon" role="img" aria-label="Ícono de reproducción"></span>
-      </button>
-      <div class="volume-control hidden" id="volume-control">
-        <input type="range" id="volume-slider" min="0" max="100" value="50">
-      </div>
-    </div>
-    <div id="youtube-player"></div>
-    <!-- TARJETA NOW PLAYING -->
-    <div class="now-playing hidden" id="now-playing">
-      <div class="np-thumb">
-        <img id="np-thumb-img" src="" alt="Portada de la canción actual">
-      </div>
-      <div class="np-info">
-        <div class="np-label">Reproduciendo</div>
-        <div class="np-title" id="np-title">-</div>
-        <div class="np-genre" id="np-genre">-</div>
-      </div>
-      <div class="np-eq">
-        <span></span><span></span><span></span><span></span><span></span>
-      </div>
-    </div>
-    <!-- CONTROLES EXTRA -->
-    <div class="music-controls">
-      <button id="prev-track" title="Canción anterior">⏮</button>
-      <button id="next-track" title="Siguiente canción">⏭</button>
-      <button id="shuffle-track" title="Shuffle">🔀</button>
-      <button id="toggle-lyrics" title="Ver letra">🎤</button>
-    </div>
-  </div>
+ <main id="main">
+ <div class="topbar">
+ <label class="search"><svg class="i"><use href="#i-search"/></svg><input id="q" placeholder="Buscar artistas, canciones, álbumes..." autocomplete="off"></label>
+ <button class="btn-ghost" id="random">SORPRÉNDEME</button>
+ <button class="btn-ghost" id="gear" title="API key"><svg class="i" style="width:15px;height:15px"><use href="#i-gear"/></svg></button>
+ </div>
 
-  <div class="main-content">
-    <div class="card">
-      <h2>Configura tu Celular</h2>
+ <div class="view on" id="view-home">
+ <div class="hero"><div class="floor"></div>
+ <div class="tag"><i></i> STREAM DIRECTO · YOUTUBE</div>
+ <h2>Tu música, <em>sin vueltas</em></h2>
+ <p>Todo el catálogo de YouTube en un reproductor simple. Buscá, escuchá, mirá el video y leé la letra.</p>
+ <div class="hero-actions">
+ <button class="btn-main" id="heroPlay">REPRODUCIR ALGO</button>
+ <button class="btn-out" id="heroSave">VER TENDENCIAS</button>
+ </div>
+ </div>
+ <section id="sec-favs" hidden><div class="sec-head"><h3>Tus favoritas</h3><span data-go="favs">VER TODO</span></div><div class="fav-strip" id="fav-strip"></div></section>
+ <section><div class="sec-head"><h3>Hecho para ti</h3><span>VER TODO</span></div><div class="row-cards" id="grid-mixes"></div></section>
+ <section><div class="sec-head"><h3>Tendencias ahora</h3><span id="trend-state">CARGANDO</span></div><div class="tracks" id="trend-tracks"></div></section>
+ </div>
 
-      <div class="form-group">
-        <label for="modelo-celular">Modelo de Celular</label>
-        <select id="modelo-celular">
-          <optgroup label="Samsung">
-            <option value="samsung-s24">Galaxy S24 Ultra</option>
-            <option value="samsung-s23">Galaxy S23 Ultra</option>
-            <option value="samsung-a73">Galaxy A73 / A54</option>
-            <option value="samsung-a55">Galaxy A55</option>
-            <option value="samsung-a34">Galaxy A34 / A14</option>
-            <option value="samsung-z-fold5">Galaxy Z Fold 5</option>
-<option value="samsung-s22">Galaxy S22 Ultra</option>
-<option value="samsung-s21">Galaxy S21 FE</option>
-<option value="samsung-a15">Galaxy A15/ A25</option>
-          </optgroup>
-          <optgroup label="Apple">
-            <option value="iphone-15">iPhone 15 Pro Max</option>
-            <option value="iphone-16">iPhone 16 Pro Max</option>
-            <option value="iphone-13">iPhone 13/ 12</option>
-            <option value="iphone-14">iPhone 14 Pro</option>
-<option value="iphone-11">iPhone 11</option>
-<option value="iphone-xr">iPhone XR/ XS</option>
-          </optgroup>
-          <optgroup label="Xiaomi/ Redmi/ POCO">
-            <option value="poco-x6">POCO X6 Pro/ Note 13 Pro+</option>
-            <option value="xiaomi-14">Xiaomi 14 Ultra</option>
-            <option value="mi11-lite">Mi 11 Lite 5G/ 5G NE</option>
-            <option value="redmi-note12">Redmi Note 12/ POCO M5</option>
-            <option value="redmi-note13">Redmi Note 13 Pro</option>
-            <option value="redmi-note8">Redmi Note 8</option>
-            <option value="redmi-9">Redmi 9/ 9A</option>
-<option value="poco-x3">POCO X3 Pro</option>
-<option value="redmi-note10">Redmi Note 10/ 10 Pro</option>
-          </optgroup>
-          <optgroup label="Motorola">
-            <option value="moto-g84">Moto G84/ G73</option>
-            <option value="moto-g54">Moto G54/ G34</option>
-            <option value="moto-edge50">Moto Edge 50 Pro</option>
-<option value="moto-g32">Moto G32/ G42</option>
-          </optgroup>
-          <optgroup label="Realme">
-            <option value="realme-11">Realme 11 Pro/ GT Neo</option>
-            <option value="realme-12">Realme 12 Pro+</option>
-            <option value="realme-c55">Realme C55/ C53</option>
-<option value="realme-9">Realme 9 Pro+</option>
-          </optgroup>
-          <optgroup label="Huawei">
-            <option value="huawei-p60">Huawei P60 Pro</option>
-            <option value="huawei-mate60">Huawei Mate 60 Pro</option>
-            <option value="huawei-nova10">Huawei Nova 10</option>
-<option value="huawei-y9">Huawei Y9/ Y7</option>
-          </optgroup>
-          <optgroup label="Oppo">
-            <option value="oppo-reno8">Oppo Reno 8 Pro</option>
-            <option value="oppo-findx7">Oppo Find X7 Ultra</option>
-            <option value="oppo-a78">Oppo A78</option>
-          </optgroup>
-          <optgroup label="Google">
-            <option value="pixel-9">Pixel 9 Pro XL</option>
-            <option value="pixel-8">Pixel 8 Pro</option>
-          </optgroup>
-          <optgroup label="OnePlus">
-            <option value="oneplus-12">OnePlus 12</option>
-            <option value="oneplus-11">OnePlus 11</option>
-          </optgroup>
-          <optgroup label="Sony">
-            <option value="xperia-1-vi">Xperia 1 VI</option>
-            <option value="xperia-5-v">Xperia 5 V</option>
-          </optgroup>
-          <optgroup label="Otros">
-            <option value="generic-high">Alta Gama (120Hz+)</option>
-            <option value="generic-mid">Media Gama (90Hz)</option>
-            <option value="generic-low">Básico (60Hz)</option>
-            <option value="generic-ultra">Ultra Alta Gama (144Hz)</option>
-          </optgroup>
-        </select>
-      </div>
+ <div class="view" id="view-explore">
+ <section style="margin-top:14px"><div class="sec-head"><h3>Explorar géneros</h3><span>8 CATEGORÍAS</span></div><div class="row-cards" id="grid-genres"></div></section>
+ </div>
 
-      <div class="form-group">
-        <label for="estilo-juego">Estilo de Juego</label>
-        <select id="estilo-juego">
-          <option value="rush">Rush (Agresivo)</option>
-          <option value="equilibrado" selected>Equilibrado</option>
-          <option value="camper">Camper (Defensivo)</option>
-          <option value="headshot">Headshot (Preciso)</option>
-        </select>
-      </div>
+ <div class="view" id="view-lib">
+ <section style="margin-top:14px"><div class="sec-head"><h3>Tu historial</h3><span id="lib-count"></span></div><div class="tracks" id="lib-tracks"></div></section>
+ </div>
 
-      <div class="form-group">
-        <label for="nivel-experiencia">Experiencia en Free Fire</label>
-        <select id="nivel-experiencia">
-          <option value="principiante">Principiante</option>
-          <option value="intermedio" selected>Intermedio</option>
-          <option value="avanzado">Avanzado</option>
-          <option value="pro">Pro Player</option>
-        </select>
-      </div>
+ <div class="view" id="view-favs">
+ <section style="margin-top:14px"><div class="sec-head"><h3>Favoritas</h3><span id="fav-count"></span></div><div id="fav-banner"></div><div class="tracks" id="fav-tracks"></div></section>
+ </div>
 
-      <div class="form-group">
-        <label for="modo-competitivo">Modo Competitivo</label>
-        <select id="modo-competitivo">
-          <option value="casual">Casual / Sala con amigos</option>
-          <option value="ranked">Ranked / Clasificatoria</option>
-          <option value="torneo">Torneo / Competitivo duro</option>
-        </select>
-      </div>
+ <div class="view" id="view-off">
+ <section style="margin-top:14px"><div class="sec-head"><h3>Música sin internet</h3><span id="off-count"></span></div>
+ <div class="off-card"><b>Guardá tus propios archivos</b><p>Importá tus MP3, M4A, WAV u OGG. Se guardan en este dispositivo y suenan sin conexión, con visualizador que reacciona al audio real. NOVA no descarga música de YouTube: sus términos lo prohíben.</p><button class="btn-main" id="offAdd">IMPORTAR AUDIO</button><input type="file" id="offFile" accept="audio/*,.mp3,.m4a,.flac,.opus" multiple hidden></div>
+ <div class="tracks" id="off-tracks"></div></section>
+ </div>
 
-      <button class="btn-generate" id="generar-sensibilidad">GENERAR SENSI + BOTÓN</button>
-    </div>
+ <div class="view" id="view-search">
+ <section style="margin-top:14px"><div class="sec-head"><h3 id="search-title">Resultados</h3><span id="search-count"></span></div><div class="tracks" id="search-results"></div></section>
+ </div>
+ </main>
 
-    <div id="resultado" class="card">
-      <h2>Tu Configuración ÉPICA</h2>
-
-      <div id="dpi-info" class="dpi-recomendado" style="display: none;">
-        <strong>DPI Recomendado:</strong> <span id="dpi-valor"></span>
-      </div>
-
-      <div id="boton-info" class="boton-disparo" style="display: none;">
-        <strong>Botón de Disparo:</strong>
-        <span id="boton-lado"></span> | Tamaño: <span id="boton-tamano"></span> | Opacidad: <span id="boton-opacidad"></span>%
-      </div>
-
-      <div id="hud-info" class="hud-info" style="display:none;"></div>
-
-      <div id="configuracion-lista"></div>
-
-
-
-      <div id="sensi-xitada" class="sensi-xitada-block" style="display:none;">
-        <h3>🔥 Sensi Xitada (Opcional)</h3>
-        <p>Preset extremo al estilo brasileño. Úsalo solo si controlas bien la mira.</p>
-        <div id="sensi-xitada-lista"></div>
-
-        <div class="pack-br">
-          <div id="pack-br-lista"></div>
-        </div>
-
-        <button id="copiar-xitada-btn" aria-label="Copiar solo la Sensi Xitada">
-          COPIAR SOLO SENSI XITADA
-        </button>
-      </div>
-
-      <button class="btn-generate" id="copiar-todo-btn" aria-label="Copiar toda la configuración">
-        COPIAR TODO (SENSI + DPI + BOTÓN)
-      </button>
-
-      <div style="margin-top: 10px;">
-        <button class="btn-secondary" id="guardar-preset-btn">GUARDAR PRESET</button>
-        <button class="btn-secondary" id="copiar-whatsapp-btn">COPIAR FORMATO WHATSAPP</button>
-      </div>
-
-      <div id="presets-section" class="presets-section" style="display:none;">
-        <h3>Presets guardados</h3>
-        <div id="presets-list"></div>
-      </div>
-    </div>
-
-    <div id="videos-section" class="card videos-section">
-      <h2>Videos de YouTube</h2>
-      <div id="videos-list" class="videos-list"></div>
-    </div>
-
-    <footer>
-      <p>CALMATEX © 2025 | Optimizado para <strong>Free Fire MAX</strong> | <strong>¡Headshots garantizados!</strong></p>
-    </footer>
-  </div>
-
-  <div id="videos-full" class="videos-full-section">
-    <button class="close-videos-btn" id="close-videos">&times;</button>
-    <div class="videos-full-header">
-      <h2>Videos de YouTube</h2>
-      <div class="video-filters" id="video-filters"></div>
-    </div>
-    <div class="videos-full-list" id="videos-full-list"></div>
-  </div>
+ <aside class="panel panel-glass">
+ <div class="panel-head"><span>COLA DE REPRODUCCIÓN</span><svg class="i" style="width:15px;height:15px"><use href="#i-queue"/></svg></div>
+ <div class="vidslot" id="vidslot"><div class="art"><div class="art-bg"></div><canvas class="art-cv"></canvas><div class="art-disc"></div></div></div>
+ <div class="viz" id="viz"></div>
+ <div class="panel-head" style="margin-top:2px"><span>EN COLA</span><span id="queue-n">0</span></div>
+ <div class="queue" id="queue"></div>
+ </aside>
 </div>
 
-<!-- PANEL DE LETRAS -->
-<div class="lyrics-panel" id="lyrics-panel">
-  <div class="lyrics-header">
-    <div>
-      <div class="lyrics-header-title">LETRA</div>
-      <div id="lyrics-track-name">Selecciona una canción</div>
-    </div>
-    <button id="close-lyrics" aria-label="Cerrar letras">✕</button>
-  </div>
-  <div class="lyrics-body" id="lyrics-lines">
-    <p class="lyrics-line">No hay letra cargada para este tema aún.</p>
-  </div>
-  <div class="lyrics-helper">
-    Edita el objeto <code>lyricsData</code> en el JS y pon tus letras + tiempos (segundos).
-  </div>
+<div class="player">
+ <div class="mini-prog"><i id="mfill"></i></div>
+ <div class="np">
+ <div class="cover c1" id="np-cover">N</div>
+ <div style="min-width:0">
+ <h5 id="np-title">Selecciona una pista</h5>
+ <p id="np-artist">—</p>
+ <span class="badge">YOUTUBE</span>
+ </div>
+ <button class="heart" id="heart" aria-label="Favorito"><svg class="i"><use href="#i-heart"/></svg></button>
+ </div>
+ <div class="controls">
+ <div class="ctrl-row">
+ <button id="shuffle" aria-label="Aleatorio"><svg class="i"><use href="#i-shuffle"/></svg></button>
+ <button id="prev" aria-label="Anterior"><svg class="i"><use href="#i-prev"/></svg></button>
+ <button class="play-btn" id="play" aria-label="Reproducir / pausar"><svg><use href="#i-play"/></svg></button>
+ <button id="next" aria-label="Siguiente"><svg class="i"><use href="#i-next"/></svg></button>
+ <button id="repeat" aria-label="Repetir"><svg class="i"><use href="#i-repeat"/></svg></button>
+ </div>
+ <div class="bar-row"><span id="t-cur">0:00</span><div class="bar" id="bar"><div class="fill" id="fill"></div></div><span id="t-dur">0:00</span></div>
+ </div>
+ <div class="right-ctrl">
+ <button id="lyrBtn" title="Letra"><svg class="i"><use href="#i-mic"/></svg></button>
+ <button id="vidBtn" title="Ver video"><svg class="i"><use href="#i-video"/></svg></button>
+ <button id="mute" title="Silenciar" aria-label="Silenciar"><svg class="i"><use href="#i-vol"/></svg></button>
+ <div class="vol" id="vol"><div class="fill" id="vol-fill"></div></div>
+ </div>
 </div>
 
-<div id="toast" class="toast">¡Copiado!</div>
+<!-- IFRAME AHORA ES TOTALMENTE VISIBLE -->
+<div id="yt-host"><div id="yt"></div><div class="veil"></div></div>
+
+<button class="stage-close" id="stageClose" aria-label="Cerrar video"><svg class="i"><use href="#i-close"/></svg></button>
+
+<div class="overlay" id="lyrOverlay"><div class="sheet">
+ <h3><span>LETRA</span><button id="lyrClose"><svg class="i" style="width:16px;height:16px"><use href="#i-close"/></svg></button></h3>
+ <p class="lyr" id="lyrBody">Cargando...</p>
+</div></div>
+
+<div class="overlay" id="gearOverlay"><div class="sheet">
+ <h3><span>API KEY DE YOUTUBE</span><button id="gearClose"><svg class="i" style="width:16px;height:16px"><use href="#i-close"/></svg></button></h3>
+ <p style="font-size:12px;color:#82869e;line-height:1.7;margin-bottom:14px">Opcional. Sin clave se usan proxies públicos (Piped). Con tu key de YouTube Data v3 la búsqueda es más estable. Importante: no abras el archivo con doble clic (file://); YouTube bloquea el reproductor así. Usá un servidor local, por ejemplo: python3 -m http.server 8000 y abrí http://localhost:8000.</p>
+ <input id="keyInput" placeholder="AIza...">
+ <div style="display:flex;gap:10px;margin-top:14px"><button class="btn-main" id="keySave">GUARDAR</button><button class="btn-out" id="keyClear">BORRAR</button></div>
+</div></div>
+
+
+<nav class="bnav">
+ <button class="on" data-view="home"><svg class="i"><use href="#i-home"/></svg><span>Inicio</span></button>
+ <button data-view="explore"><svg class="i"><use href="#i-compass"/></svg><span>Explorar</span></button>
+ <button data-view="favs"><svg class="i"><use href="#i-heart"/></svg><span>Favoritas</span></button>
+ <button data-view="off"><svg class="i"><use href="#i-dl"/></svg><span>Offline</span></button>
+ <button data-view="lib"><svg class="i"><use href="#i-lib"/></svg><span>Historial</span></button>
+</nav>
+
+<div class="sn" data-t="vid">
+ <div class="sn-top"><button id="snClose" aria-label="Cerrar"><svg class="i"><use href="#i-down"/></svg></button><span>REPRODUCIENDO</span><button id="x-share" aria-label="Compartir"><svg class="i"><use href="#i-share"/></svg></button></div>
+ <div id="sheetSlot"><div class="art"><div class="art-bg"></div><canvas class="art-cv"></canvas><div class="art-disc"></div></div></div>
+ <div class="sn-tabs"><button class="on" data-t="vid">Video</button><button data-t="lyr">Letra</button><button data-t="que">Cola</button><button data-t="sim">Similares</button></div>
+ <div class="sn-body">
+  <div class="sn-pane on" id="p-vid"><div class="xrow"><button id="x-sleep"><svg class="i"><use href="#i-moon"/></svg><b>Temporizador</b><span>Apagado</span></button><button id="x-clip"><svg class="i"><use href="#i-video"/></svg><b>Mostrar video</b><span>Sí</span></button><button id="x-speed"><svg class="i"><use href="#i-gauge"/></svg><b>Velocidad</b><span>1x</span></button></div><p class="empty">Deslizá el título a los costados para cambiar de tema.</p></div>
+  <div class="sn-pane" id="p-lyr"><div id="lyrLines"></div></div>
+  <div class="sn-pane" id="p-que"><div id="sn-queue"></div></div>
+  <div class="sn-pane" id="p-sim"><div class="tracks" id="sn-sim"><p class="empty">Cargando...</p></div></div>
+ </div>
+ <div class="sn-info" id="sn-info"><div style="min-width:0"><h5 id="sn-title">—</h5><p id="sn-artist">—</p></div><button class="heart" id="sn-heart" aria-label="Favorito"><svg class="i"><use href="#i-heart"/></svg></button></div>
+ <div class="bar-row"><span id="sn-cur">0:00</span><div class="bar" id="sn-bar"><div class="fill" id="sn-fill"></div></div><span id="sn-dur">0:00</span></div>
+ <div class="ctrl-row sn-ctrl"><button id="sn-shuf" aria-label="Aleatorio"><svg class="i"><use href="#i-shuffle"/></svg></button><button id="sn-prev" aria-label="Anterior"><svg class="i"><use href="#i-prev"/></svg></button><button class="play-btn" id="sn-play" aria-label="Reproducir"><svg><use href="#i-play"/></svg></button><button id="sn-next" aria-label="Siguiente"><svg class="i"><use href="#i-next"/></svg></button><button id="sn-rep" aria-label="Repetir"><svg class="i"><use href="#i-repeat"/></svg></button></div>
+</div>
+
+<div class="toast" id="toast">Listo</div>
 
 <script src="https://www.youtube.com/iframe_api"></script>
 <script>
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];
+const PIPED=["https://pipedapi.kavin.rocks","https://pipedapi.adminforge.de","https://api.piped.private.coffee","https://pipedapi.drgns.space","https://pipedapi.leptons.xyz"];
+const GENRES=[["Synthwave","c1"],["Techno","c2"],["Ambient","c5"],["Dark Pop","c3"],["House","c4"],["Trance","c6"],["Lo-Fi","c2"],["Industrial","c1"]];
+const MIXES=[["Top hits global","c1"],["Synthwave retro","c2"],["Techno oscuro","c3"],["Lo-fi para estudiar","c4"],["Rock clásico","c5"],["Reggaetón 2025","c6"]];
+const PLS=[["Neón nocturno","synthwave night drive"],["Enfoque","deep focus music"],["Ruta 3AM","late night drive mix"],["Clásicos rotos","classic rock hits"],["Domingo","chill sunday acoustic"]];
+const st={get(k,d){try{const v=localStorage.getItem(k);return v==null?d:JSON.parse(v)}catch(e){return d}},set(k,v){try{localStorage.setItem(k,JSON.stringify(v))}catch(e){}}};
+let queue=[],idx=-1,cur=null,playing=false,shuffle=false,repeat=false,player=null,ready=false,pending=null,dur=0,errs=0,prevStack=[],lyrFor=null,sReq=0;
+let hist=st.get("nova_hist",[]),favs=st.get("nova_favs",[]),vol=st.get("nova_vol",70);
+const lists={};
+const fmt=s=>{s=Math.max(0,s||0);return Math.floor(s/60)+":"+String(Math.floor(s%60)).padStart(2,"0")};
+const esc=s=>String(s==null?"":s).replace(/[<>&"']/g,c=>({"<":"&lt;",">":"&gt;","&":"&amp;",'"':"&quot;","'":"&#39;"}[c]));
+const dec=s=>{const t=document.createElement("textarea");t.innerHTML=s||"";return t.value};
+const isFav=id=>favs.some(f=>f.id===id);
+let tt;const toast=m=>{const e=$("#toast");e.textContent=m;e.classList.add("show");clearTimeout(tt);tt=setTimeout(()=>e.classList.remove("show"),2600)};
+const getKey=()=>{try{return localStorage.getItem("nova_key")||""}catch(e){return""}};
 
-window.addEventListener('load', () => {
-  const loader = document.getElementById('page-loader');
-  if (loader) {
-    setTimeout(() => { loader.classList.add('hidden'); }, 600);
-    setTimeout(() => { loader.remove(); }, 1100);
-  }
-});
-
-let player;
-let isPlaying = false;
-let currentTrackIndex = -1;
-let ytErrorSkips = 0;
-const SPECIAL_TRACK_INDEX = 0;
-
-document.addEventListener('DOMContentLoaded', () => {
-  const pingSlider = document.getElementById('ping-aprox');
-  const pingValor = document.getElementById('ping-valor');
-  const fpsSelect = document.getElementById('fps-aprox');
-  const netAdvice = document.getElementById('net-advice');
-
-  function updateNetAdvice() {
-    if (!pingSlider || !fpsSelect || !netAdvice || !pingValor) return;
-    const ping = parseInt(pingSlider.value, 10) || 60;
-    const fps = parseInt(fpsSelect.value, 10) || 60;
-    pingValor.textContent = `Ping: ${ping} ms`;
-
-    let msg = "";
-    if (ping <= 40 && fps >= 60) {
-      msg = "Tienes buena conexión 💚. Puedes usar sensi más xitada y agresiva sin tanto problema.";
-    } else if (ping <= 70) {
-      msg = "Conexión decente. Te doy una sensi equilibrada para no perder tantos tiros por delay.";
-    } else {
-      msg = "Ping alto ⚠️. Conviene una sensi un poco más tranquila para que el delay no te arruine la mira.";
-    }
-    if (fps <= 45) {
-      msg += " Tus FPS son algo bajos, así que priorizamos control sobre velocidad extrema.";
-    } else if (fps >= 90) {
-      msg += " Tus FPS son muy altos, puedes permitirte una mira más rápida.";
-    }
-    netAdvice.textContent = msg;
-  }
-
-  if (pingSlider) {
-    pingSlider.addEventListener('input', updateNetAdvice);
-  }
-  if (fpsSelect) {
-    fpsSelect.addEventListener('change', updateNetAdvice);
-  }
-  updateNetAdvice();
-
-  // Presets Xitada BR
-  const packBrLista = document.getElementById('pack-br-lista');
-  if (packBrLista) {
-    packBrLista.innerHTML = `
-      <div class="preset-row">
-        <button type="button" class="btn-secondary btn-br-preset" data-preset="nobru">Xitada Nobru Style</button>
-        <button type="button" class="btn-secondary btn-br-preset" data-preset="rush-br">Xitada Rush BR</button>
-        <button type="button" class="btn-secondary btn-br-preset" data-preset="preciso-br">Xitada Precisión BR</button>
-      </div>
-    `;
-
-    packBrLista.addEventListener('click', (e) => {
-      const btn = e.target.closest('.btn-br-preset');
-      if (!btn) return;
-      const preset = btn.dataset.preset;
-      aplicarPresetXitado(preset);
-    });
-  }
-});
-
-function aplicarPresetXitado(tipo) {
-  // Campos base (puedes ajustar estos IDs a lo que tengas en tu formulario)
-  const generalInput = document.getElementById('sens-general');
-  const mira2Input = document.getElementById('sens-mira-2x');
-  const mira4Input = document.getElementById('sens-mira-4x');
-  const miraAwmInput = document.getElementById('sens-awp');
-  const dpiInput = document.getElementById('dpi');
-  const botonDisparoInput = document.getElementById('btn-disparo');
-
-  if (!generalInput || !mira2Input || !mira4Input || !miraAwmInput || !dpiInput || !botonDisparoInput) {
-    console.warn("No se encontraron todos los campos de sensi para aplicar la xitada.");
-    return;
-  }
-
-  if (tipo === 'nobru') {
-    generalInput.value = 95;
-    mira2Input.value = 93;
-    mira4Input.value = 90;
-    miraAwmInput.value = 88;
-    dpiInput.value = 600;
-    botonDisparoInput.value = 52;
-  } else if (tipo === 'rush-br') {
-    generalInput.value = 98;
-    mira2Input.value = 96;
-    mira4Input.value = 94;
-    miraAwmInput.value = 90;
-    dpiInput.value = 650;
-    botonDisparoInput.value = 50;
-  } else if (tipo === 'preciso-br') {
-    generalInput.value = 88;
-    mira2Input.value = 86;
-    mira4Input.value = 84;
-    miraAwmInput.value = 82;
-    dpiInput.value = 500;
-    botonDisparoInput.value = 54;
-  }
-
-  // pequeña animación feedback si existe la card principal
-  const mainCard = document.querySelector('.card');
-  if (mainCard) {
-    mainCard.classList.add('pulse-xitada');
-    setTimeout(() => mainCard.classList.remove('pulse-xitada'), 600);
-  }
+/* ---------- Búsqueda ---------- */
+async function fj(u,ms=6000){const c=new AbortController(),t=setTimeout(()=>c.abort(),ms);try{const r=await fetch(u,{signal:c.signal});if(!r.ok)throw new Error(r.status);return await r.json()}finally{clearTimeout(t)}}
+async function search(q){
+ const m=q.match(/(?:youtu\.be\/|[?&]v=)([\w-]{11})/);
+ if(m)return[{id:m[1],title:"Video de YouTube",artist:m[1],thumb:`https://i.ytimg.com/vi/${m[1]}/mqdefault.jpg`,dur:0}];
+ const key=getKey();
+ if(key){
+  let j;try{j=await fj(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=30&q=${encodeURIComponent(q)}&key=${encodeURIComponent(key)}`)}catch(e){throw new Error("Key inválida o cuota agotada")}
+  return(j.items||[]).map(i=>({id:i.id.videoId,title:dec(i.snippet.title),artist:dec(i.snippet.channelTitle),thumb:i.snippet.thumbnails?.medium?.url||`https://i.ytimg.com/vi/${i.id.videoId}/mqdefault.jpg`,dur:0})).filter(x=>x.id);
+ }
+ for(const b of [...PIPED]){
+  try{
+   const j=await fj(`${b}/search?q=${encodeURIComponent(q)}&filter=music_songs`);
+   const it=(j.items||[]).filter(x=>x.url&&x.url.includes("v="));
+   if(!it.length)continue;
+   PIPED.splice(PIPED.indexOf(b),1);PIPED.unshift(b);
+   return it.map(x=>{const id=x.url.split("v=")[1].split("&")[0];return{id,title:x.title,artist:(x.uploaderName||"").replace(/\s*-\s*Topic$/i,""),thumb:x.thumbnail||`https://i.ytimg.com/vi/${id}/mqdefault.jpg`,dur:Math.max(0,x.duration||0)}});
+  }catch(e){}
+ }
+ throw new Error("Sin conexión con el proveedor de búsqueda");
 }
 
+/* ---------- Render ---------- */
+function row(t,i,l){
+ return`<div class="track${cur&&cur.id===t.id?" on":""}" data-l="${l}" data-i="${i}" data-id="${esc(t.id)}" role="button" tabindex="0"><span class="num">${String(i+1).padStart(2,"0")}</span>
+ <div class="eq"><i></i><i></i><i></i><i></i></div>
+ <div class="mini">${t.thumb?`<img src="${esc(t.thumb)}" loading="lazy" alt="">`:""}</div>
+ <div style="min-width:0"><h5>${esc(t.title)}</h5><p>${esc(t.artist)}</p></div>
+ <span class="dur">${t.dur?fmt(t.dur):"--:--"}</span>
+ <button class="heart${isFav(t.id)?" on":""}" aria-label="Favorito"><svg class="i" style="width:15px;height:15px"><use href="#i-heart"/></svg></button></div>`;
+}
+function renderList(el,l,arr,empty){lists[l]=arr;$(el).innerHTML=arr.length?arr.map((t,i)=>row(t,i,l)).join(""):`<p class="empty">${empty||"Sin resultados."}</p>`}
+const renderLib=()=>{renderList("#lib-tracks","hist",hist,"Todavía no reprodujiste nada.");$("#lib-count").textContent=hist.length+" TEMAS"};
+const renderFavs=()=>{renderList("#fav-tracks","favs",favs,"Tocá el corazón de una canción para guardarla acá.");$("#fav-count").textContent=favs.length+" TEMAS"};
+function renderQueue(){
+ $("#queue").innerHTML=queue.length?queue.map((t,i)=>`<div class="q-item" data-i="${i}" role="button" tabindex="0"><div class="cover">${t.thumb?`<img src="${esc(t.thumb)}" alt="">`:""}</div><div style="min-width:0"><h6>${esc(t.title)}</h6><p>${esc(t.artist)}</p></div></div>`).join(""):'<p class="empty">La cola está vacía.</p>';
+ $("#queue-n").textContent=queue.length;
+}
+function markActive(){$$(".track").forEach(r=>r.classList.toggle("on",!!cur&&r.dataset.id===cur.id))}
+function syncHearts(){$$(".track").forEach(r=>r.querySelector(".heart").classList.toggle("on",isFav(r.dataset.id)));$("#heart").classList.toggle("on",!!cur&&isFav(cur.id))}
+function toggleFav(t){if(!t)return;favs=isFav(t.id)?favs.filter(f=>f.id!==t.id):[t,...favs];st.set("nova_favs",favs);renderFavs();syncHearts()}
 
-const playIcon = '<svg viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>';
-const pauseIcon = '<svg viewBox="0 0 24 24"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>';
+function showView(v){
+ $$(".view").forEach(x=>x.classList.toggle("on",x.id==="view-"+v));
+ $$(".nav button").forEach(b=>b.classList.toggle("on",b.dataset.view===v));
+ $("#main").scrollTop=0;placeHost();
+}
 
-/* PLAYLIST */
-const musicTracks = [
-  { id: 'SwqOjKUIz-E', title: 'Tema Especial Calmatex', genre: 'Trap / Dembow' },
-  { id: 'xK8SEUzk7BU', title: 'Nueva Música (Pedido)', genre: 'Extra' },
-  { id: 'lf7TVbYwJ7s', title: 'Alan Walker - Spectre', genre: 'Electrónica' },
-  { id: '3aevyrmqbY0', title: 'FLOW - HERO - Kibou no Uta', genre: 'Anime' },
-  { id: 'gT2wY0DjYGo', title: 'Joost Klein - Europapa', genre: 'Eurovision' },
-  { id: 'FMA8X18-W1Q', title: 'Entre Nosotros', genre: 'Reggaetón' },
-  { id: 'o1tj2zJ2Wvg', title: "Guns N' Roses - Welcome To The Jungle", genre: 'Rock' },
-  { id: 'HyHNuVaZJ-k', title: 'Gorillaz - Feel Good Inc.', genre: 'Alternativo' },
-  { id: 'nkll0StZJLA', title: 'Starset - My Demons', genre: 'Rock / Epic' },
-  { id: 'PgF29M69QXg', title: 'Bibi Babydoll - Automotivo Bibi Fogosa', genre: 'Funk BR' },
-  { id: 'kJQP7kiw5Fk', title: 'Luis Fonsi - Despacito', genre: 'Reggaetón' },
-  { id: 'C7dPqrmDWxs', title: 'Anitta - Envolver', genre: 'BR / Urbano' },
-  { id: 'k0ftbqj0is4', title: 'VOX DEI || Hazbin Hotel (Español Latino)', genre: 'Hazbin / OST' },
-  { id: 'YfL7vll73BM', title: '[HazbinHotel/BLENDER] Stayed Gone - 3D Animation', genre: '3D Animation' },
-  { id: 'PzdlWMPudmo', title: 'Otra Música (Pedido)', genre: 'Extra' },
+/* ---------- Reproductor (YouTube IFrame API) ---------- */
+function placeHost(){
+ const h=$("#yt-host"),s=$("#vidslot");
+ if(document.body.classList.contains("stage-on")){h.style.cssText="left:0;top:0;width:100vw;height:100vh;border-radius:0";return}
+ const r=s.getBoundingClientRect();
+ h.style.cssText=(s.offsetParent&&r.width>0)?`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px`:"left:-9999px;top:0;width:320px;height:180px";
+}
+window.onYouTubeIframeAPIReady=()=>{
+ const pv={playsinline:1,rel:0,modestbranding:1,controls:0,disablekb:1,fs:0,iv_load_policy:3};
+ if(/^https?:/.test(location.protocol))pv.origin=location.origin;
+ player=new YT.Player("yt",{width:"100%",height:"100%",playerVars:pv,events:{
+  onReady(){ready=true;applyVol();if(pending){player.loadVideoById(pending);pending=null}},
+  onStateChange(e){
+   const s=e.data;
+   if(s===1){playing=true;errs=0;const d=player.getDuration();if(d){dur=d;$("#t-dur").textContent=fmt(d)}syncPlay()}
+   else if(s===2){playing=false;syncPlay()}
+   else if(s===0){if(repeat){player.seekTo(0);player.playVideo()}else next()}
+  },
+  onError(){
+   playing=false;syncPlay();errs++;
+   toast(location.protocol==="file:"?"YouTube bloquea esto desde file://. Abrí la página con un servidor local (ver ⚙).":"Este video no se puede reproducir. Probando el siguiente...");
+   if(location.protocol!=="file:"&&errs<Math.min(queue.length,5))setTimeout(next,1200);
+  }}});
+};
+function syncPlay(){$("#play").innerHTML=`<svg><use href="#i-${playing?"pause":"play"}"/></svg>`;document.body.classList.toggle("playing",playing);
+ if("mediaSession" in navigator)navigator.mediaSession.playbackState=playing?"playing":"paused"}
+function setProg(t,d){$("#fill").style.width=d?Math.min(100,t/d*100)+"%":"0%";$("#t-cur").textContent=fmt(t)}
+setInterval(()=>{if(!ready||!cur||!player.getCurrentTime)return;try{setProg(player.getCurrentTime(),dur||player.getDuration())}catch(e){}},250);
+
+function load(i){
+ if(!queue.length)return;
+ idx=((i%queue.length)+queue.length)%queue.length;cur=queue[idx];dur=cur.dur||0;
+ $("#np-title").textContent=cur.title;$("#np-artist").textContent=cur.artist||"—";
+ $("#np-cover").innerHTML=cur.thumb?`<img src="${esc(cur.thumb)}" alt="">`:esc((cur.title||"N")[0]);
+ $("#t-dur").textContent=dur?fmt(dur):"--:--";setProg(0,dur);
+ document.title=cur.title+" — NOVA";
+ hist=[cur,...hist.filter(h=>h.id!==cur.id)].slice(0,40);st.set("nova_hist",hist);renderLib();
+ renderQueue();markActive();syncHearts();
+ if($("#lyrOverlay").classList.contains("on"))getLyrics(cur);
+ if("mediaSession" in navigator)navigator.mediaSession.metadata=new MediaMetadata({title:cur.title,artist:cur.artist||"",artwork:cur.thumb?[{src:cur.thumb}]:[]});
+ if(ready)player.loadVideoById(cur.id);else pending=cur.id;
+}
+function togglePlay(){
+ if(!cur){if(queue.length)load(0);else toast("Elegí una canción primero");return}
+ if(!ready)return;playing?player.pauseVideo():player.playVideo();
+}
+function next(){
+ if(!queue.length)return;
+ if(shuffle&&queue.length>1){prevStack.push(idx);let n;do{n=Math.floor(Math.random()*queue.length)}while(n===idx);load(n)}else load(idx+1);
+}
+function prev(){
+ if(ready&&cur&&player.getCurrentTime()>4){player.seekTo(0,true);return}
+ if(shuffle&&prevStack.length)load(prevStack.pop());else load(idx-1);
+}
+function applyVol(){$("#vol-fill").style.width=vol+"%";st.set("nova_vol",vol);if(ready){player.setVolume(vol);if(vol>0&&player.isMuted())player.unMute()}}
+function drag(el,fn){
+ const mv=e=>{const r=el.getBoundingClientRect();fn(Math.max(0,Math.min(1,(e.clientX-r.left)/r.width)))};
+ el.addEventListener("pointerdown",e=>{el.setPointerCapture(e.pointerId);mv(e);el.onpointermove=mv});
+ el.addEventListener("pointerup",()=>{el.onpointermove=null});
+}
+
+/* ---------- Letra ---------- */
+async function getLyrics(t){
+ if(lyrFor===t.id)return;lyrFor=t.id;
+ const body=$("#lyrBody");body.textContent="Cargando letra...";
+ let a=(t.artist||"").replace(/\s*-\s*Topic$|VEVO$/i,"").trim();
+ let ti=dec(t.title).replace(/\(.*?\)|\[.*?\]/g,"").replace(/\b(official|video|lyrics?|audio|hd|4k)\b/gi,"").replace(/\s*[\(\[]?(ft|feat)\.?\s.*$/i,"").replace(/\s+/g," ").trim();
+ const p=ti.split(/\s[-–|]\s/);if(p.length>1){a=p[0].trim();ti=p[1].trim()}
+ try{
+  const j=await fj(`https://api.lyrics.ovh/v1/${encodeURIComponent(a)}/${encodeURIComponent(ti)}`,8000);
+  if(lyrFor!==t.id)return;
+  body.textContent=(j.lyrics||"").trim()||"Sin letra disponible.";
+ }catch(e){
+  if(lyrFor!==t.id)return;
+  body.innerHTML=`Sin letra para este tema.<br><br><a style="color:#00e6ff" target="_blank" rel="noopener" href="https://www.google.com/search?q=${encodeURIComponent(t.title+" "+t.artist+" letra")}">Buscar la letra en Google</a>`;
+ }
+}
+
+/* ---------- Búsqueda UI ---------- */
+async function doSearch(q,o={}){
+ const my=++sReq;showView("search");
+ $("#search-title").textContent=`Resultados para "${q}"`;$("#search-count").textContent="BUSCANDO";
+ $("#search-results").innerHTML='<p class="empty">Buscando en YouTube...</p>';
+ try{
+  const res=await search(q);if(my!==sReq)return;
+  $("#search-count").textContent=res.length+" TEMAS";renderList("#search-results","search",res);
+  if(o.play&&res.length){queue=res.slice();load(0)}
+ }catch(e){if(my===sReq){$("#search-count").textContent="";$("#search-results").innerHTML=`<p class="empty" style="color:#ff6b6b">${esc(e.message)}. Probá de nuevo o cargá una API key en el engranaje.</p>`}}
+}
+async function loadTrend(){
+ $("#trend-state").textContent="CARGANDO";
+ try{
+  const r=await search("tendencias música 2025");
+  renderList("#trend-tracks","trend",r);$("#trend-state").textContent=r.length+" TEMAS";
+  if(!queue.length){queue=r.slice();renderQueue()}
+ }catch(e){$("#trend-state").textContent="ERROR";$("#trend-tracks").innerHTML=`<p class="empty" style="color:#ff6b6b">${esc(e.message)}. <button class="btn-ghost" data-retry>REINTENTAR</button></p>`}
+}
+
+/* ---------- Init / eventos ---------- */
+$("#playlists").innerHTML=PLS.map(([n,q])=>`<button data-q="${esc(q)}"><span class="dot"></span>${esc(n)}</button>`).join("");
+$("#grid-mixes").innerHTML=MIXES.map(([m,c])=>`<div class="card" data-q="${esc(m)}" role="button" tabindex="0"><div class="cover ${c}">${esc(m[0])}</div><h4>${esc(m)}</h4><p>Mix automático</p><span class="play"><svg><use href="#i-play"/></svg></span></div>`).join("");
+$("#grid-genres").innerHTML=GENRES.map(([g,c])=>`<div class="card" data-q="${esc(g)} mix" role="button" tabindex="0"><div class="cover ${c}">${esc(g[0])}</div><h4>${esc(g)}</h4><p>Explorar</p></div>`).join("");
+$("#viz").innerHTML=Array.from({length:26},(_,i)=>`<i style="animation-delay:${-(i*137%900)}ms;animation-duration:${700+(i*53%500)}ms"></i>`).join("");
+renderLib();renderFavs();renderQueue();applyVol();
+
+document.addEventListener("click",e=>{
+ if(e.target.closest("[data-retry]"))return loadTrend();
+ const tr=e.target.closest(".track[data-l]");
+ if(tr){const arr=lists[tr.dataset.l]||[],t=arr[+tr.dataset.i];if(e.target.closest(".heart"))return toggleFav(t);queue=arr.slice();prevStack=[];return load(+tr.dataset.i)}
+ const qi=e.target.closest(".q-item");if(qi)return load(+qi.dataset.i);
+ const c=e.target.closest("[data-q]");if(c)doSearch(c.dataset.q);
+});
+let deb;$("#q").addEventListener("input",e=>{clearTimeout(deb);const v=e.target.value.trim();
+ deb=setTimeout(()=>{if(v.length>1)doSearch(v);else if($("#view-search").classList.contains("on"))showView("home")},500)});
+$("#q").addEventListener("keydown",e=>{if(e.key==="Enter"){clearTimeout(deb);const v=e.target.value.trim();if(v)doSearch(v)}if(e.key==="Escape"){e.target.value="";e.target.blur()}});
+$$(".nav button").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+$("#play").onclick=togglePlay;$("#next").onclick=next;$("#prev").onclick=prev;
+$("#shuffle").onclick=e=>{shuffle=!shuffle;prevStack=[];e.currentTarget.classList.toggle("on",shuffle)};
+$("#repeat").onclick=e=>{repeat=!repeat;e.currentTarget.classList.toggle("on",repeat);toast(repeat?"Repetir tema: sí":"Repetir tema: no")};
+$("#heart").onclick=()=>toggleFav(cur);
+$("#mute").onclick=()=>{if(!ready)return;const m=player.isMuted();m?player.unMute():player.mute();$("#mute").style.opacity=m?1:.4};
+drag($("#bar"),f=>{if(ready&&cur&&dur){player.seekTo(f*dur,true);setProg(f*dur,dur)}});
+drag($("#vol"),f=>{vol=Math.round(f*100);applyVol()});
+$("#heroPlay").onclick=()=>doSearch("top hits 2025",{play:true});
+$("#heroSave").onclick=()=>doSearch("tendencias música 2025");
+$("#random").onclick=()=>doSearch(GENRES[Math.floor(Math.random()*GENRES.length)][0]+" mix",{play:true});
+$("#lyrBtn").onclick=()=>{if(!cur)return toast("Elegí una canción primero");$("#lyrOverlay").classList.add("on");getLyrics(cur)};
+$("#lyrClose").onclick=()=>$("#lyrOverlay").classList.remove("on");
+const stage=on=>{document.body.classList.toggle("stage-on",on);placeHost()};
+$("#vidBtn").onclick=()=>cur?stage(true):toast("Elegí una canción primero");
+$("#stageClose").onclick=()=>stage(false);
+$("#gear").onclick=()=>{$("#keyInput").value=getKey();$("#gearOverlay").classList.add("on")};
+$("#gearClose").onclick=()=>$("#gearOverlay").classList.remove("on");
+$("#keySave").onclick=()=>{try{localStorage.setItem("nova_key",$("#keyInput").value.trim())}catch(e){}$("#gearOverlay").classList.remove("on");toast("Key guardada")};
+$("#keyClear").onclick=()=>{try{localStorage.removeItem("nova_key")}catch(e){}$("#keyInput").value="";toast("Key borrada")};
+document.addEventListener("keydown",e=>{
+ const tg=e.target;if(/INPUT|TEXTAREA/.test(tg.tagName))return;
+ if(e.key==="Enter"&&tg.matches("[role=button]"))return tg.click();
+ if(e.key==="Escape"){stage(false);$$(".overlay").forEach(o=>o.classList.remove("on"));return}
+ if(e.code==="Space"){if(tg.closest("button"))return;e.preventDefault();togglePlay()}
+ else if(e.code==="ArrowRight"){e.shiftKey?next():ready&&cur&&player.seekTo(player.getCurrentTime()+5,true)}
+ else if(e.code==="ArrowLeft"){e.shiftKey?prev():ready&&cur&&player.seekTo(player.getCurrentTime()-5,true)}
+});
+if("mediaSession" in navigator){const a=(n,f)=>{try{navigator.mediaSession.setActionHandler(n,f)}catch(e){}};
+ a("play",togglePlay);a("pause",togglePlay);a("nexttrack",next);a("previoustrack",prev)}
+addEventListener("resize",placeHost);new ResizeObserver(placeHost).observe($("#vidslot"));
+placeHost();loadTrend();
+if(location.protocol==="file:")setTimeout(()=>toast("Abrí NOVA desde un servidor local (http://localhost) para que YouTube reproduzca"),1500);
+
+</script>
+<script>
+(()=>{
+const mob=()=>matchMedia("(max-width:780px)").matches,B=document.body,sn=$(".sn");
+let lyr={s:null,p:"",msg:""},tab="vid",lastLn=-1,sleepI=0,sleepT,spdI=0,wl=null,simFor=null;
+const open=()=>B.classList.contains("sheet-on");
+function openSheet(){B.classList.add("sheet-on");const t0=performance.now();(function f(){placeHost();if(performance.now()-t0<450)requestAnimationFrame(f)})();if(cur)getLyrics(cur);syncPlay()}
+function closeSheet(){B.classList.remove("sheet-on");placeHost()}
+/* host: usa el recuadro del sheet cuando está abierto */
+placeHost=function(){const h=$("#yt-host");
+ if(B.classList.contains("stage-on")){h.style.cssText="left:0;top:0;width:100vw;height:100vh;border-radius:0";return}
+ const s=open()?$("#sheetSlot"):$("#vidslot"),r=s.getBoundingClientRect();
+ h.style.cssText=(s.offsetParent&&r.width>0)?`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px`:"left:-9999px;top:0;width:320px;height:180px"};
+new ResizeObserver(placeHost).observe($("#sheetSlot"));
+/* wrappers */
+const _load=load;load=function(i){_load(i);if(!cur)return;
+ let h=0;for(const c of cur.id)h=(h*31+c.charCodeAt(0))%360;document.documentElement.style.setProperty("--h",h);
+ $("#sn-title").textContent=cur.title;$("#sn-artist").textContent=cur.artist||"—";
+ if(open()){getLyrics(cur);if(tab==="sim")loadSim()}};
+const _sp=setProg;setProg=function(t,d){_sp(t,d);const p=d?Math.min(100,t/d*100)+"%":"0%";
+ $("#mfill").style.width=p;$("#sn-fill").style.width=p;$("#sn-cur").textContent=fmt(t);$("#sn-dur").textContent=d?fmt(d):"--:--";syncLyr(t)};
+const _sy=syncPlay;syncPlay=function(){_sy();$("#sn-play").innerHTML=$("#play").innerHTML;
+ if(playing&&open()&&navigator.wakeLock)navigator.wakeLock.request("screen").then(l=>wl=l).catch(()=>{});else if(wl){wl.release().catch(()=>{});wl=null}};
+const _sh=syncHearts;syncHearts=function(){_sh();$("#sn-heart").classList.toggle("on",!!cur&&isFav(cur.id))};
+const _rq=renderQueue;renderQueue=function(){_rq();$("#sn-queue").innerHTML=$("#queue").innerHTML;[...$("#sn-queue").children].forEach((e,i)=>e.classList.toggle("cur",i===idx));[...$("#queue").children].forEach((e,i)=>e.classList.toggle("cur",i===idx))};
+const _sv=showView;showView=function(v){_sv(v);$$(".bnav button").forEach(b=>b.classList.toggle("on",b.dataset.view===v));if(open())closeSheet()};
+/* letras sincronizadas (LRCLIB) con respaldo lyrics.ovh */
+const guess=t=>{let a=(t.artist||"").replace(/\s*-\s*Topic$|VEVO$/i,"").trim();
+ let ti=dec(t.title).replace(/\(.*?\)|\[.*?\]/g,"").replace(/\b(official|video|lyrics?|audio|hd|4k)\b/gi,"").replace(/\s*[\(\[]?(ft|feat)\.?\s.*$/i,"").replace(/\s+/g," ").trim();
+ const p=ti.split(/\s[-–|]\s/);if(p.length>1){a=p[0].trim();ti=p[1].trim()}return[a,ti]};
+function renderLyr(){const box=$("#lyrLines"),ov=$("#lyrBody");lastLn=-1;
+ if(lyr.msg){box.innerHTML=`<p class="empty">${lyr.msg}</p>`;ov.innerHTML=lyr.msg}
+ else if(lyr.s){box.innerHTML=lyr.s.map(l=>`<div class="ln" data-t="${l.t}">${esc(l.x)||"♪"}</div>`).join("");ov.textContent=lyr.s.map(l=>l.x).join("\n")}
+ else{box.innerHTML=lyr.p.split("\n").map(x=>`<div class="ln plain">${esc(x)}</div>`).join("");ov.textContent=lyr.p}}
+getLyrics=async function(t){
+ if(lyrFor===t.id)return;lyrFor=t.id;lyr={s:null,p:"",msg:"Cargando letra..."};renderLyr();
+ const[a,ti]=guess(t);let res=null;
+ try{const j=await fj(`https://lrclib.net/api/search?q=${encodeURIComponent(a+" "+ti)}`,8000);res=j.find(x=>x.syncedLyrics)||j.find(x=>x.plainLyrics)||null}catch(e){}
+ if(lyrFor!==t.id)return;
+ if(res&&res.syncedLyrics)lyr.s=res.syncedLyrics.split("\n").map(l=>{const m=l.match(/^\[(\d+):(\d+(?:\.\d+)?)\]\s*(.*)$/);return m?{t:+m[1]*60+ +m[2],x:m[3]}:null}).filter(Boolean);
+ else if(res&&res.plainLyrics)lyr.p=res.plainLyrics.trim();
+ if(!(lyr.s&&lyr.s.length)&&!lyr.p){try{const j=await fj(`https://api.lyrics.ovh/v1/${encodeURIComponent(a)}/${encodeURIComponent(ti)}`,8000);lyr.p=(j.lyrics||"").trim()}catch(e){}if(lyrFor!==t.id)return}
+ lyr.msg=(lyr.s&&lyr.s.length)||lyr.p?"":`Sin letra para este tema.<br><br><a style="color:#00e6ff" target="_blank" rel="noopener" href="https://www.google.com/search?q=${encodeURIComponent(t.title+" "+t.artist+" letra")}">Buscar en Google</a>`;
+ renderLyr()};
+function syncLyr(t){if(!lyr.s||!open()||tab!=="lyr")return;let i=-1;for(let k=0;k<lyr.s.length&&lyr.s[k].t<=t+.3;k++)i=k;
+ if(i>=0){const a=lyr.s[i],n=lyr.s[i+1],p=n?Math.min(1,Math.max(0,(t-a.t)/(n.t-a.t))):1,el=$("#lyrLines").children[i];if(el)el.style.setProperty("--p",(p*100).toFixed(1)+"%")}
+ if(i===lastLn)return;lastLn=i;[...$("#lyrLines").children].forEach((q,k)=>q.style.setProperty("--d",Math.min(4,Math.abs(k-i))));$$("#lyrLines .ln.on").forEach(e=>e.classList.remove("on"));const e=$("#lyrLines").children[i];
+ if(e){e.classList.add("on");const b=$("#p-lyr");b.scrollTo({top:e.offsetTop-b.clientHeight/2+e.clientHeight/2,behavior:"smooth"})}}
+$("#lyrLines").onclick=e=>{const l=e.target.closest(".ln[data-t]");if(l&&ready)player.seekTo(+l.dataset.t,true)};
+/* similares */
+async function loadSim(){if(!cur||simFor===cur.id)return;simFor=cur.id;$("#sn-sim").innerHTML='<p class="empty">Buscando música similar...</p>';
+ try{const r=(await search((cur.artist||cur.title)+" mix")).filter(x=>x.id!==cur.id);if(simFor!==cur.id)return;renderList("#sn-sim","sim",r)}catch(e){simFor=null;$("#sn-sim").innerHTML='<p class="empty">No se pudo cargar.</p>'}}
+/* eventos */
+$(".np").addEventListener("click",e=>{if(mob()&&cur&&!e.target.closest(".heart"))openSheet()});
+$("#snClose").onclick=closeSheet;
+$$(".sn-tabs button").forEach(b=>b.onclick=()=>{tab=b.dataset.t;sn.dataset.t=tab;lastLn=-1;
+ $$(".sn-tabs button").forEach(x=>x.classList.toggle("on",x===b));$$(".sn-pane").forEach(p=>p.classList.toggle("on",p.id==="p-"+tab));
+ if(tab==="lyr"&&cur)getLyrics(cur);if(tab==="sim")loadSim()});
+const syncM=()=>setTimeout(()=>{$("#sn-shuf").classList.toggle("on",$("#shuffle").classList.contains("on"));$("#sn-rep").classList.toggle("on",$("#repeat").classList.contains("on"))},0);
+[["sn-play","play"],["sn-prev","prev"],["sn-next","next"],["sn-shuf","shuffle"],["sn-rep","repeat"]].forEach(([a,b])=>$("#"+a).onclick=()=>{$("#"+b).click();syncM()});
+$("#sn-heart").onclick=()=>toggleFav(cur);
+drag($("#sn-bar"),f=>{if(ready&&cur&&dur){player.seekTo(f*dur,true);setProg(f*dur,dur)}});
+$$(".bnav button").forEach(b=>b.onclick=()=>showView(b.dataset.view));
+$("#x-sleep").onclick=()=>{const o=[0,15,30,60];sleepI=(sleepI+1)%4;clearTimeout(sleepT);const m=o[sleepI];$("#x-sleep span").textContent=m?m+" min":"Apagado";
+ if(m)sleepT=setTimeout(()=>{ready&&player.pauseVideo();toast("Temporizador: pausado");$("#x-sleep span").textContent="Apagado";sleepI=0},m*6e4)};
+$("#x-speed").onclick=()=>{const o=[1,1.25,1.5,.75];spdI=(spdI+1)%4;ready&&player.setPlaybackRate(o[spdI]);$("#x-speed span").textContent=o[spdI]+"x"};
+$("#x-share").onclick=async()=>{if(!cur)return;const u="https://youtu.be/"+cur.id;try{if(navigator.share)await navigator.share({title:cur.title,url:u});else{await navigator.clipboard.writeText(u);toast("Link copiado")}}catch(e){}};
+function swipe(el,fn){let x,y;el.addEventListener("touchstart",e=>{x=e.touches[0].clientX;y=e.touches[0].clientY},{passive:true});el.addEventListener("touchend",e=>fn(e.changedTouches[0].clientX-x,e.changedTouches[0].clientY-y))}
+const lr=dx=>{if(dx<-60)$("#next").click();else if(dx>60)$("#prev").click()};
+swipe($(".sn-top"),(dx,dy)=>{if(dy>60)closeSheet()});swipe($("#sn-info"),lr);swipe($(".np"),lr);
+document.addEventListener("pointerdown",e=>{if(navigator.vibrate&&e.target.closest("button,.track,.card"))navigator.vibrate(6)});
+document.addEventListener("keydown",e=>{if(e.key==="Escape")closeSheet()});
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncPlay()});
+})();
+</script>
+<script>
+(()=>{
+const B=document.body;let vidOn=true,ytp=null,last=0;
+/* ---------- Arte animado (reemplaza al video de YouTube) ---------- */
+const ART={hue:260,bpm:110,s:new Float32Array(48),env:0};
+function setArt(t){if(!t)return;let h=0;for(const c of t.id)h=(h*31+c.charCodeAt(0))%360;ART.hue=h;ART.bpm=90+h%50;
+ const u=t.thumb?`url('${t.thumb.replace(/['"()\\]/g,"")}')`:"none";
+ const vl=$(".veil");if(vl)vl.style.backgroundImage=u;
+ $$(".art").forEach(a=>{a.querySelector(".art-bg").style.backgroundImage=u;a.style.setProperty("--h",h);
+  a.querySelector(".art-disc").innerHTML=t.thumb?`<img src="${esc(t.thumb)}" alt="">`:`<span>${esc((t.title||"N")[0])}</span>`})}
+function frame(ts){requestAnimationFrame(frame);if(ts-last<33||document.hidden)return;last=ts;
+ const cs=$$("canvas.art-cv").filter(c=>c.offsetParent);if(!cs.length)return;
+ const t=ts/1000,N=48,s=ART.s;ART.env+=((playing?1:0)-ART.env)*.08;
+ const real=player===adapter&&an&&playing;if(real)an.getByteFrequencyData(fd);
+ let beat=real?((fd[1]+fd[2]+fd[3]+fd[4])/4/255)**2:Math.pow(Math.max(0,Math.sin(t*Math.PI*2*ART.bpm/60)),6)*ART.env;
+ for(let i=0;i<N;i++){const v=real?fd[Math.floor(Math.pow(i/N,1.5)*fd.length*.7)]/255:ART.env*(.25+.75*Math.abs(Math.sin(t*1.7+i*.45)*Math.sin(t*.9+i*.21)))*(.6+.4*beat);s[i]+=(v-s[i])*.35}
+ cs.forEach(c=>{const w=c.clientWidth,h=c.clientHeight,d=Math.min(devicePixelRatio||1,2);if(c.width!==Math.round(w*d)){c.width=Math.round(w*d);c.height=Math.round(h*d)}
+  const x=c.getContext("2d");x.setTransform(d,0,0,d,0,0);x.clearRect(0,0,w,h);
+  const cx=w/2,cy=h/2,r0=h*.33;x.lineCap="round";x.lineWidth=Math.max(2,h*.013);
+  for(let i=0;i<N;i++){const a=i/N*Math.PI*2-Math.PI/2,l=s[i]*h*.16+h*.012;x.strokeStyle=`hsl(${ART.hue+i*4} 95% 65%)`;x.beginPath();x.moveTo(cx+Math.cos(a)*r0,cy+Math.sin(a)*r0);x.lineTo(cx+Math.cos(a)*(r0+l),cy+Math.sin(a)*(r0+l));x.stroke()}
+  x.lineWidth=2;x.strokeStyle=`hsla(${ART.hue} 100% 70% / ${.12+beat*.5})`;x.beginPath();x.arc(cx,cy,r0*(1.03+beat*.05),0,7);x.stroke();
+  c.parentNode.style.setProperty("--b",beat.toFixed(3))})}
+requestAnimationFrame(frame);
+/* video original: opcional */
+const _pl=placeHost;placeHost=function(){const h=$("#yt-host");
+ if(B.classList.contains("stage-on"))return _pl();
+ const sh=B.classList.contains("sheet-on"),s=sh?$("#sheetSlot"):(matchMedia("(max-width:780px)").matches?null:$("#vidslot")),r=s?s.getBoundingClientRect():null;
+ h.style.cssText=(vidOn&&cur&&!cur.local&&s&&s.offsetParent&&r.width>0)?`left:${r.left}px;top:${r.top}px;width:${r.width}px;height:${r.height}px`:"left:-9999px;top:0;width:320px;height:180px"};
+$("#x-clip").onclick=()=>{if(cur&&cur.local)return toast("Los archivos locales no tienen video");vidOn=!vidOn;$("#x-clip span").textContent=vidOn?"Sí":"No";placeHost()};
+/* ---------- Música sin internet (tus archivos, en IndexedDB) ---------- */
+const db=new Promise((res,rej)=>{const r=indexedDB.open("nova",1);r.onupgradeneeded=()=>r.result.createObjectStore("t",{keyPath:"id"});r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error)});
+const tx=async(m,f)=>{const d=await db;return new Promise((res,rej)=>{const t=d.transaction("t",m),q=f(t.objectStore("t"));t.oncomplete=()=>res(q&&q.result);t.onerror=()=>rej(t.error)})};
+let loc=[];
+function renderOff(){lists.off=loc;$("#off-count").textContent=loc.length+" ARCHIVOS";
+ $("#off-tracks").innerHTML=loc.length?loc.map((t,i)=>row(t,i,"off").replace('class="track','class="track loc').replace('<button class="heart',`<button class="del" data-del="${esc(t.id)}" aria-label="Borrar">×</button><button class="heart`)).join(""):'<p class="empty">Todavía no importaste audio.</p>'}
+async function refresh(){try{const all=await tx("readonly",s=>s.getAll());loc=all.map(({blob,...m})=>m).sort((a,b)=>b.at-a.at);renderOff()}catch(e){$("#off-tracks").innerHTML='<p class="empty">Este navegador no permite guardar archivos.</p>'}}
+const dOf=f=>new Promise(r=>{const a=new Audio(),u=URL.createObjectURL(f);a.preload="metadata";a.onloadedmetadata=()=>{URL.revokeObjectURL(u);r(a.duration||0)};a.onerror=()=>r(0);a.src=u;setTimeout(()=>r(0),4000)});
+$("#offAdd").onclick=()=>$("#offFile").click();
+$("#offFile").onchange=async e=>{let n=0;for(const f of e.target.files){if(!/^audio\//.test(f.type)&&!/\.(mp3|m4a|wav|ogg|flac|aac|opus)$/i.test(f.name))continue;
+  let name=f.name.replace(/\.[^.]+$/,"").replace(/[_]+/g," "),artist="Mi archivo";const p=name.split(/\s[-–]\s/);if(p.length>1){artist=p[0];name=p.slice(1).join(" - ")}
+  try{const du=await dOf(f);await tx("readwrite",s=>s.put({id:"loc:"+Date.now()+Math.random().toString(36).slice(2,6),title:name,artist,dur:du,at:Date.now(),local:true,blob:f}));n++}catch(err){toast("No se pudo guardar "+f.name)}}
+ e.target.value="";await refresh();if(n)toast(n+" archivo(s) guardados para escuchar sin internet")};
+document.addEventListener("click",async e=>{const d=e.target.closest("[data-del]");if(!d)return;e.stopPropagation();
+ await tx("readwrite",s=>s.delete(d.dataset.del));if(cur&&cur.id===d.dataset.del&&player===adapter)player.pauseVideo();await refresh()},true);
+/* motor local: imita la API del reproductor de YouTube */
+const au=new Audio();let actx,an,fd,adapter;au.preload="auto";
+const graph=()=>{if(actx)return;try{actx=new(window.AudioContext||window.webkitAudioContext)();an=actx.createAnalyser();an.fftSize=256;an.smoothingTimeConstant=.8;actx.createMediaElementSource(au).connect(an);an.connect(actx.destination);fd=new Uint8Array(an.frequencyBinCount)}catch(e){actx=null}};
+window.adapter=adapter={async loadVideoById(id){const r=await tx("readonly",s=>s.get(id));if(!r)return toast("Archivo no encontrado");if(!cur||cur.id!==id)return;
+  if(au.dataset.u)URL.revokeObjectURL(au.dataset.u);const u=URL.createObjectURL(r.blob);au.dataset.u=u;au.src=u;graph();au.volume=vol/100;try{await au.play()}catch(e){toast("Tocá play para continuar")}},
+ playVideo(){actx&&actx.resume();au.play()},pauseVideo(){au.pause()},seekTo(t){au.currentTime=t},getCurrentTime:()=>au.currentTime||0,getDuration:()=>au.duration||0,
+ setVolume(v){au.volume=v/100},isMuted:()=>au.muted,mute(){au.muted=true},unMute(){au.muted=false},setPlaybackRate(r){au.playbackRate=r}};
+const on=()=>player===adapter;
+au.onplay=()=>{if(on()){playing=true;errs=0;syncPlay()}};au.onpause=()=>{if(on()&&!au.ended){playing=false;syncPlay()}};
+au.onloadedmetadata=()=>{if(on()){dur=au.duration;$("#t-dur").textContent=fmt(dur)}};
+au.onended=()=>{if(!on())return;playing=false;syncPlay();if(repeat){au.currentTime=0;au.play()}else next()};
+au.onerror=()=>{if(on())toast("No se pudo reproducir el archivo")};
+/* cambio de motor al cargar */
+const _l=load;load=function(i){
+ if(queue.length){const n=queue.length,t=queue[((i%n)+n)%n];
+  if(t.local){if(!on()){if(player&&player.pauseVideo)try{player.pauseVideo()}catch(e){}ytp=player;player=adapter}ready=true;pending=null}
+  else if(on()){au.pause();player=ytp;ready=!!(ytp&&ytp.loadVideoById)}}
+ _l(i);setArt(cur);placeHost()};
+const _sv=showView;showView=function(v){_sv(v);$$(".bnav button").forEach(b=>b.classList.toggle("on",b.dataset.view===v))};
+refresh();
+})();
+</script>
+<script>
+(()=>{
+const rm=matchMedia("(prefers-reduced-motion:reduce)").matches,fine=matchMedia("(pointer:fine)").matches;
+let mx=0,my=0,raf=0;
+addEventListener("pointermove",e=>{mx=e.clientX;my=e.clientY;if(!raf)raf=requestAnimationFrame(()=>{raf=0;document.body.style.setProperty("--mx",mx+"px");document.body.style.setProperty("--my",my+"px")})},{passive:true});
+if(fine&&!rm){
+ document.addEventListener("pointermove",e=>{const c=e.target.closest&&e.target.closest(".card");if(!c)return;const r=c.getBoundingClientRect(),x=(e.clientX-r.left)/r.width,y=(e.clientY-r.top)/r.height;
+  c.style.setProperty("--ry",(x-.5)*12+"deg");c.style.setProperty("--rx",(.5-y)*12+"deg");c.style.setProperty("--gx",x*100+"%");c.style.setProperty("--gy",y*100+"%")});
+ document.addEventListener("pointerout",e=>{const c=e.target.closest&&e.target.closest(".card");if(c&&!c.contains(e.relatedTarget)){c.style.setProperty("--rx","0deg");c.style.setProperty("--ry","0deg")}});
+}
+document.addEventListener("pointerdown",e=>{const b=e.target.closest(".btn-main,.btn-out,.btn-ghost,.nav button");if(!b)return;
+ const r=b.getBoundingClientRect(),d=Math.max(r.width,r.height)*2,s=document.createElement("span");s.className="ripple";
+ s.style.cssText=`width:${d}px;height:${d}px;left:${e.clientX-r.left-d/2}px;top:${e.clientY-r.top-d/2}px`;b.appendChild(s);setTimeout(()=>s.remove(),650)});
+const cv=document.getElementById("fx");if(rm||!cv)return;
+const x=cv.getContext("2d");let W,H,P=[],last=0;
+const init=()=>{W=cv.width=innerWidth;H=cv.height=innerHeight;P=Array.from({length:Math.min(70,Math.floor(W*H/22000))},()=>({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.35,vy:(Math.random()-.5)*.35,r:Math.random()*1.6+.6}))};
+init();addEventListener("resize",init);
+(function f(t){requestAnimationFrame(f);if(document.hidden||t-last<33)return;last=t;x.clearRect(0,0,W,H);const k=playing?2.2:1;
+ for(const p of P){p.x+=p.vx*k;p.y+=p.vy*k;if(p.x<0||p.x>W)p.vx*=-1;if(p.y<0||p.y>H)p.vy*=-1}
+ for(let i=0;i<P.length;i++){const a=P[i];x.fillStyle="rgba(150,230,255,.7)";x.beginPath();x.arc(a.x,a.y,a.r,0,7);x.fill();
+  for(let j=i+1;j<P.length;j++){const b=P[j],d=Math.hypot(a.x-b.x,a.y-b.y);if(d<120){x.strokeStyle=`rgba(123,92,255,${(1-d/120)*.4})`;x.lineWidth=1;x.beginPath();x.moveTo(a.x,a.y);x.lineTo(b.x,b.y);x.stroke()}}}})(0);
+})();
+</script>
+<script>
+(()=>{
+const _tf=toggleFav;
+function favUI(){
+ const n=favs.length;
+ const cells=Array.from({length:4},(_,i)=>favs[i]&&favs[i].thumb?`<img src="${esc(favs[i].thumb)}" alt="">`:"<div></div>").join("");
+ $("#fav-banner").innerHTML=`<div class="fb"><div class="fb-mosaic">${cells}</div><div><small>COLECCIÓN</small><h2>Tus favoritas</h2><p>${n?n+" canciones con ♥":"Tocá el ♥ de cualquier canción para guardarla acá."}</p>${n?'<div class="fb-act"><button class="btn-main" id="favPlay">▶ REPRODUCIR</button><button class="btn-out" id="favShuf">ALEATORIO</button></div>':""}</div></div>`;
+ $("#sec-favs").hidden=!n;
+ $("#fav-strip").innerHTML=favs.slice(0,20).map((t,i)=>`<div class="ftile" data-fi="${i}" role="button" tabindex="0"><div class="fi">${t.thumb?`<img src="${esc(t.thumb)}" alt="" loading="lazy">`:esc((t.title||"N")[0])}</div><b>${esc(t.title)}</b><i>${esc(t.artist)}</i></div>`).join("");
+}
+toggleFav=function(t){_tf(t);favUI()};
+document.addEventListener("click",e=>{
+ const f=e.target.closest(".ftile");if(f){queue=favs.slice();prevStack=[];load(+f.dataset.fi);return}
+ if(e.target.closest("#favPlay")){queue=favs.slice();prevStack=[];load(0);return}
+ if(e.target.closest("#favShuf")){queue=[...favs].sort(()=>Math.random()-.5);prevStack=[];load(0);return}
+ const g=e.target.closest("[data-go]");if(g)showView(g.dataset.go)});
+favUI();
+})();
+</script>
+<script>
+(()=>{
+/* ===== YouTube Music + descargas con servidor que sí funciona ===== */
+const stl=document.createElement("style");
+stl.textContent=`
+.dl-btn{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;color:var(--dim);flex:none;transition:.18s}
+.dl-btn:hover{color:var(--acc2);background:rgba(255,255,255,.09)}
+.dl-btn.on{color:#00ff9d;text-shadow:0 0 12px #00ff9d}
+.dl-btn.busy{color:var(--acc2);animation:pulse 1s infinite}
+.sn-info .dl-btn{width:40px;height:40px}
+`;
+document.head.appendChild(stl);
+
+/* ---------- marcas de YouTube Music ---------- */
+try{
+ document.querySelectorAll(".np .badge").forEach(b=>b.textContent="YT MUSIC");
+ const tag=document.querySelector(".hero .tag");
+ if(tag)tag.innerHTML='<i></i> STREAM DIRECTO · YOUTUBE MUSIC';
+ const sf=document.querySelector(".side-foot");
+ if(sf)sf.innerHTML='<b>YOUTUBE MUSIC</b><p>Búsqueda directa en el catálogo musical de YouTube. El audio lo sirve YouTube, los anuncios los decide YouTube.</p>';
+ const gp=document.querySelector("#gearOverlay p");
+ if(gp)gp.textContent="Opcional. Sin clave se usa el buscador de YouTube Music con un servidor de respaldo. Con tu key de YouTube Data v3 la búsqueda es más estable. No abras el archivo con doble clic (file://): YouTube bloquea el reproductor así. Usá un servidor local, por ejemplo python3 -m http.server 8000 y abrí http://localhost:8000.";
+}catch(e){}
+
+/* ---------- buscador: YouTube Music ---------- */
+const INV=["https://yt.chocolatemoo53.com","https://inv.nadeko.net","https://invidious.nerdvpn.de","https://invidious.tiekoetter.com"];
+const YTM_KEY="AIzaSyC9XL3ZjWddXya6X74dJoCTL-WEYFDNX30";
+const thumbOf=id=>`https://i.ytimg.com/vi/${id}/mqdefault.jpg`;
+function walk(o,fn){if(!o||typeof o!=="object")return;if(Array.isArray(o)){for(const x of o)walk(x,fn);return}fn(o);for(const k in o)walk(o[k],fn)}
+function txt(o){const s=[];walk(o,r=>{if(typeof r.text==="string")s.push(r.text)});return s.join(" ").trim()}
+
+async function ytm(q){
+ const r=await fetch(`https://music.youtube.com/youtubei/v1/search?key=${YTM_KEY}&prettyPrint=false`,{
+  method:"POST",headers:{"Content-Type":"application/json"},
+  body:JSON.stringify({context:{client:{clientName:"WEB_REMIX",clientVersion:"1.20241120.01.00",hl:"es",gl:"US"}},query:q})});
+ if(!r.ok)throw 0;
+ const j=await r.json(),out=[];
+ walk(j,o=>{
+  const R=o.musicResponsiveListItemRenderer;if(!R)return;
+  const vid=R.playlistItemData&&R.playlistItemData.videoId;if(!vid||vid.length!==11)return;
+  const cols=(R.flexColumns||[]).map(c=>txt(c.flexColumnRenderer?c.flexColumnRenderer.text:c));
+  const title=cols[0];if(!title)return;
+  if(out.some(x=>x.id===vid))return;
+  const artist=(cols[1]||"").split("•")[0].trim();
+  const ds=(cols[cols.length-1]||"").match(/(\d+):(\d{2})/);
+  const dur=ds?(+ds[1])*60+ +ds[2]:0;
+  let th="";
+  try{const t2=R.thumbnail.musicThumbnailRenderer.thumbnail.thumbnails;th=t2[t2.length-1].url}catch(e){}
+  out.push({id:vid,title,artist:artist||"YouTube Music",thumb:th||thumbOf(vid),dur});
+ });
+ if(!out.length)throw 0;
+ return out.filter(x=>!x.dur||x.dur<1500);
+}
+
+search=async function(q){
+ const m=q.match(/(?:youtu\.be\/|[?&]v=)([\w-]{11})/);
+ if(m)return[{id:m[1],title:"Video de YouTube",artist:m[1],thumb:thumbOf(m[1]),dur:0}];
+ const key=getKey();
+ if(key){
+  let j;try{j=await fj(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&videoCategoryId=10&maxResults=30&q=${encodeURIComponent(q)}&key=${encodeURIComponent(key)}`)}catch(e){throw new Error("Key inválida o cuota agotada")}
+  return (j.items||[]).map(i=>({id:i.id.videoId,title:dec(i.snippet.title),artist:dec(i.snippet.channelTitle),thumb:i.snippet.thumbnails?.medium?.url||thumbOf(i.id.videoId),dur:0})).filter(x=>x.id);
+ }
+ try{const r=await ytm(q);if(r.length)return r}catch(e){}
+ for(const b of INV){
+  try{
+   const j=await fj(`${b}/api/v1/search?q=${encodeURIComponent(q)}&type=video`,7000);
+   const it=(j||[]).filter(x=>x.videoId&&(x.lengthSeconds||0)<1500);
+   if(!it.length)continue;
+   return it.map(x=>({id:x.videoId,title:x.title,artist:(x.author||"").replace(/\s*-\s*Topic$/i,""),thumb:(x.videoThumbnails||[]).find(t=>t.quality==="medium")?.url||thumbOf(x.videoId),dur:x.lengthSeconds||0}));
+  }catch(e){}
+ }
+ throw new Error("Sin conexión con el buscador");
+};
+
+/* ---------- botones de descarga ---------- */
+function mkDl(){
+ const b=document.createElement("button");
+ b.className="dl-btn";
+ b.title="Descargar para escuchar sin internet";
+ b.setAttribute("aria-label","Descargar para escuchar sin internet");
+ b.innerHTML='<svg class="i" style="width:17px;height:17px"><use href="#i-dl"/></svg>';
+ b.addEventListener("click",e=>{e.stopPropagation();doDownload(cur)});
+ return b;
+}
+const b1=mkDl(),b2=mkDl();
+$("#heart").parentNode.insertBefore(b1,$("#heart").nextSibling);
+$("#sn-heart").parentNode.insertBefore(b2,$("#sn-heart"));
+const btns=[b1,b2];
+
+/* ---------- vista Descargas ---------- */
+const view=document.createElement("div");
+view.className="view";view.id="view-dl";
+view.innerHTML=`<section style="margin-top:14px"><div class="sec-head"><h3>Descargas</h3><span id="dl-count"></span></div>
+<div class="off-card"><b>Escuchá sin internet</b><p>Poné la canción que quieras y tocá la flecha ⤓ del reproductor. El audio queda guardado como dato interno en este dispositivo y suena sin conexión. Si un tema falla, reintentá: la descarga pasa por un servidor público y a veces está saturado.</p></div>
+<div class="tracks" id="dl-tracks"></div></section>`;
+$("#main").appendChild(view);
+
+const nb=document.createElement("button");
+nb.dataset.view="dl";
+nb.innerHTML='<svg class="i"><use href="#i-dl"/></svg> Descargas';
+const offNav=$('.nav button[data-view="off"]');
+offNav.parentNode.insertBefore(nb,offNav.nextSibling);
+nb.onclick=()=>showView("dl");
+
+const bb=document.createElement("button");
+bb.dataset.view="dl";
+bb.innerHTML='<svg class="i"><use href="#i-dl"/></svg><span>Descargas</span>';
+const offBn=$('.bnav button[data-view="off"]');
+offBn.parentNode.insertBefore(bb,offBn.nextSibling);
+bb.onclick=()=>showView("dl");
+
+/* ---------- datos ---------- */
+let dl=[],busy=false;
+function renderDl(){
+ lists.dl=dl;
+ $("#dl-count").textContent=dl.length+" DESCARGAS";
+ $("#dl-tracks").innerHTML=dl.length
+  ?dl.map((t,i)=>row(t,i,"dl")
+     .replace('class="track','class="track loc')
+     .replace('<button class="heart',`<button class="del" data-del="${esc(t.id)}" aria-label="Borrar">×</button><button class="heart`)).join("")
+  :'<p class="empty">Todavía no descargaste nada. Reproducí un tema y tocá ⤓ en el reproductor.</p>';
+}
+refresh=async function(){
+ try{
+  const all=await tx("readonly",s=>s.getAll());
+  dl=all.filter(x=>x.dl).map(({blob,...m})=>m).sort((a,b)=>b.at-a.at);
+  loc=all.filter(x=>!x.dl).map(({blob,...m})=>m).sort((a,b)=>b.at-a.at);
+  renderOff();renderDl();syncDl();
+ }catch(e){$("#off-tracks").innerHTML='<p class="empty">Este navegador no permite guardar archivos.</p>'}
+};
+function syncDl(){const on=!!cur&&dl.some(d=>d.id===cur.id);btns.forEach(b=>b.classList.toggle("on",on))}
+
+/* ---------- descarga ---------- */
+const HOST="https://yt.chocolatemoo53.com";
+const PROXIES=[
+ u=>"https://api.codetabs.com/v1/proxy?quest="+encodeURIComponent(u),
+ u=>"https://api.allorigins.win/raw?url="+encodeURIComponent(u),
+ u=>"https://corsproxy.io/?url="+encodeURIComponent(u)
 ];
+const COBALT=["https://cobalt-api.kwiatekmiki.com","https://cobalt.canine.tools","https://api.dl.ixhby.dev"];
 
-const durations = ['3:30', '3:45', '4:12', '2:58', '3:20', '5:05', '3:50', '4:30', '2:45', '3:27', '3:14'];
-
-/* LETRAS SINCRONIZADAS (EJEMPLOS: tú debes poner la letra real) */
-const lyricsData = {
-  'SwqOjKUIz-E': [
-    { time: 0,  text: '[Intro]' },
-    { time: 5,  text: 'Línea 1 de la letra (edítala tú)' },
-    { time: 10, text: 'Línea 2 de la letra' },
-    { time: 15, text: 'Línea 3 de la letra' }
-  ],
-  'PgF29M69QXg': [
-    { time: 0,  text: '[Intro Funk BR]' },
-    { time: 6,  text: 'Línea 1' },
-    { time: 12, text: 'Línea 2' }
-  ]
-};
-
-let lyricsInterval = null;
-let currentLyricsTrackId = null;
-
-/* PRESETS LOCALSTORAGE */
-const PRESETS_KEY = 'calmatex_presets_v1';
-let presets = [];
-
-/* YT API */
-function onYouTubeIframeAPIReady() {
-  player = new YT.Player('youtube-player', {
-    height: '0',
-    width: '0',
-    videoId: musicTracks[0].id,
-    playerVars: {
-      'autoplay': 1,
-      'controls': 0,
-      'showinfo': 0,
-      'rel': 0,
-      'fs': 0,
-      'enablejsapi': 1
-    },
-    events: {
-      'onReady': onPlayerReady,
-      'onStateChange': onPlayerStateChange,
-      'onError': onPlayerError
-    }
-  });
-}
-
-function onPlayerError(event) {
-  console.error('Error en YouTube:', event.data);
-  // 101/150: el video no permite reproducción embebida
-  ytErrorSkips = (ytErrorSkips || 0) + 1;
-  const code = event && typeof event.data !== 'undefined' ? event.data : '??';
-  if (ytErrorSkips >= (musicTracks ? musicTracks.length : 10)) {
-    showToast('No se pudo reproducir la música (cód. ' + code + ')');
-    return;
+async function fetchBlob(u,ms,onp){
+ const c=new AbortController();
+ const t=setTimeout(()=>c.abort(),ms||35000);
+ let stall=0,last=Date.now(),got=0;
+ try{
+  const r=await fetch(u,{signal:c.signal});
+  if(!r.ok)throw new Error("http"+r.status);
+  const ct=(r.headers.get("content-type")||"").toLowerCase();
+  if(ct.includes("html")||ct.includes("json"))throw new Error("no audio");
+  const total=+(r.headers.get("content-length")||0);
+  if(!r.body){const bl=await r.blob();if(bl.size<20000)throw new Error("corto");return bl}
+  last=Date.now();
+  stall=setInterval(()=>{if(Date.now()-last>12000)c.abort()},1500);
+  const rd=r.body.getReader(),parts=[];
+  for(;;){
+   const {done,value}=await rd.read();
+   if(done)break;
+   parts.push(value);got+=value.length;last=Date.now();
+   if(onp&&total)onp(got,total);
   }
-  showToast('Este tema no se puede reproducir (cód. ' + code + '). Siguiente ▶');
-  try { nextTrack(true); } catch (e) {}
+  const bl=new Blob(parts,{type:ct||"audio/mp4"});
+  if(bl.size<20000)throw new Error("corto");
+  return bl;
+ }finally{clearTimeout(t);clearInterval(stall)}
 }
 
+async function guardar(t,bl){
+ const rec={id:t.id,title:t.title,artist:t.artist,dur:t.dur||0,at:Date.now(),local:true,thumb:t.thumb,dl:true,blob:bl};
+ try{await tx("readwrite",s=>s.put(rec))}catch(e){return toast("Sin espacio para guardar")}
+ await refresh();syncDl();
+ toast("Guardada en Descargas · ya suena sin internet");
+}
 
-function onPlayerStateChange(event) {
-  const musicIcon = document.getElementById('music-icon');
-  const musicToggle = document.getElementById('music-toggle');
-  const npEq = document.querySelector('.np-eq');
-
-  if (event.data === YT.PlayerState.PLAYING) {
-    ytErrorSkips = 0;
-    isPlaying = true;
-    musicIcon.innerHTML = pauseIcon;
-    musicToggle.classList.add('playing');
-    musicToggle.setAttribute('aria-pressed', 'true');
-    if (npEq) npEq.classList.add('active');
-
-    if (currentTrackIndex === SPECIAL_TRACK_INDEX) {
-      document.body.classList.add('special-track-active');
-    } else {
-      document.body.classList.remove('special-track-active');
-    }
-
-  } else if (event.data === YT.PlayerState.PAUSED) {
-    isPlaying = false;
-    musicIcon.innerHTML = playIcon;
-    musicToggle.classList.remove('playing');
-    musicToggle.setAttribute('aria-pressed', 'false');
-    if (npEq) npEq.classList.remove('active');
-    document.body.classList.remove('special-track-active');
-
-  } else if (event.data === YT.PlayerState.ENDED) {
-    nextTrack(true);
+async function doDownload(t){
+ if(busy)return;
+ if(!t)return toast("Elegí una canción primero");
+ if(t.local)return toast("Esa canción ya está guardada");
+ if(dl.some(d=>d.id===t.id))return toast("Ya está en Descargas");
+ busy=true;btns.forEach(b=>b.classList.add("busy"));
+ toast("Conectando con el servidor…");
+ const pct=(g,tot)=>toast("Descargando… "+Math.min(99,Math.round(g/tot*100))+"%");
+ const fin=Date.now()+115000;
+ try{
+  /* 1) directo al servidor con CORS, mejor calidad primero */
+  for(const it of ["251","140","139"]){
+   if(Date.now()>fin)break;
+   try{const bl=await fetchBlob(`${HOST}/latest_version?id=${t.id}&itag=${it}&local=true`,35000,pct);if(bl)return await guardar(t,bl)}catch(e){}
   }
-}
-
-/* LETRAS */
-function openLyricsPanelForTrack(track) {
-  const panel = document.getElementById('lyrics-panel');
-  const linesContainer = document.getElementById('lyrics-lines');
-  const trackNameEl = document.getElementById('lyrics-track-name');
-
-  currentLyricsTrackId = track.id;
-  const data = lyricsData[track.id];
-
-  trackNameEl.textContent = track.title || 'Tema sin nombre';
-  linesContainer.innerHTML = '';
-
-  if (!data || !data.length) {
-    linesContainer.innerHTML = '<p class="lyrics-line">No has agregado aún la letra para este tema.</p>';
-  } else {
-    data.forEach((line, index) => {
-      const div = document.createElement('div');
-      div.className = 'lyrics-line';
-      div.dataset.time = line.time;
-      div.id = 'lyrics-line-' + index;
-      div.textContent = line.text;
-      linesContainer.appendChild(div);
-    });
+  /* 2) mismo servidor a través de proxy CORS, calidad liviana */
+  for(const p of PROXIES){
+   if(Date.now()>fin)break;
+   try{const bl=await fetchBlob(p(`${HOST}/latest_version?id=${t.id}&itag=139&local=true`),30000,pct);if(bl)return await guardar(t,bl)}catch(e){}
   }
-
-  if (lyricsInterval) clearInterval(lyricsInterval);
-
-  if (data && data.length) {
-    lyricsInterval = setInterval(() => {
-      if (!player) return;
-      const t = player.getCurrentTime();
-      let activeIndex = 0;
-
-      for (let i = 0; i < data.length; i++) {
-        if (t >= data[i].time) activeIndex = i;
-        else break;
-      }
-
-      const allLines = document.querySelectorAll('#lyrics-lines .lyrics-line');
-      allLines.forEach((el, i) => {
-        el.classList.toggle('active', i === activeIndex);
-      });
-
-      const activeEl = document.querySelector('#lyrics-lines .lyrics-line.active');
-      if (activeEl) {
-        activeEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-      }
-    }, 400);
+  /* 3) convertidores externos */
+  for(const c of COBALT){
+   if(Date.now()>fin)break;
+   try{
+    const r=await fetch(c+"/",{method:"POST",headers:{"Content-Type":"application/json","Accept":"application/json"},
+     body:JSON.stringify({url:"https://youtu.be/"+t.id,downloadMode:"audio",audioFormat:"mp3",audioBitrate:"128"})});
+    if(!r.ok)continue;
+    const j=await r.json();
+    if(j.status==="error"||!j.url)continue;
+    const bl=await fetchBlob(j.url,40000,pct);
+    if(bl)return await guardar(t,bl);
+   }catch(e){}
   }
-
-  panel.classList.add('open');
+  toast("No se pudo descargar. Esperá unos segundos y reintentá.");
+ }finally{
+  busy=false;btns.forEach(b=>b.classList.remove("busy"));
+ }
 }
 
-function closeLyricsPanel() {
-  const panel = document.getElementById('lyrics-panel');
-  panel.classList.remove('open');
-  if (lyricsInterval) {
-    clearInterval(lyricsInterval);
-    lyricsInterval = null;
-  }
-}
-
-/* TRACK UI */
-function updateActiveTrack() {
-  const items = document.querySelectorAll('.music-item');
-  items.forEach((item, i) => {
-    item.classList.toggle('active', i === currentTrackIndex);
-  });
-}
-function updatePlayButtonThumb() {
-  const img = document.getElementById('btn-music-thumb');
-  if (!img || currentTrackIndex < 0 || currentTrackIndex >= musicTracks.length) return;
-  const track = musicTracks[currentTrackIndex];
-  img.src = 'https://img.youtube.com/vi/' + track.id + '/mqdefault.jpg';
-}
-function updateNowPlaying() {
-  const np = document.getElementById('now-playing');
-  const img = document.getElementById('np-thumb-img');
-  const titleEl = document.getElementById('np-title');
-  const genreEl = document.getElementById('np-genre');
-
-  if (!np || currentTrackIndex < 0 || currentTrackIndex >= musicTracks.length) {
-    if (np) np.classList.add('hidden');
-    return;
-  }
-
-  const track = musicTracks[currentTrackIndex];
-  const thumbUrl = 'https://img.youtube.com/vi/' + track.id + '/mqdefault.jpg';
-  img.src = thumbUrl;
-  titleEl.textContent = track.title;
-  genreEl.textContent = track.genre || '';
-  np.classList.remove('hidden');
-
-  updatePlayButtonThumb();
-}
-
-/* CAMBIOS DE TRACK */
-function selectTrack(index) {
-  if (index < 0 || index >= musicTracks.length || !player) return;
-  currentTrackIndex = index;
-  const track = musicTracks[index];
-  player.loadVideoById(track.id);
-
-  setTimeout(() => {
-    if (player && player.getPlayerState() !== YT.PlayerState.PLAYING) {
-      player.playVideo();
-    }
-  }, 500);
-
-  updateActiveTrack();
-  updateNowPlaying();
-
-  const panel = document.getElementById('lyrics-panel');
-  if (panel && panel.classList.contains('open')) {
-    openLyricsPanelForTrack(track);
-  }
-}
-function nextTrack(auto = false) {
-  if (!musicTracks.length) return;
-  let next = currentTrackIndex + 1;
-  if (next >= musicTracks.length) next = 0;
-  selectTrack(next);
-  if (!auto) showToast('Siguiente track ▶');
-}
-function prevTrack() {
-  if (!musicTracks.length) return;
-  let prev = currentTrackIndex - 1;
-  if (prev < 0) prev = musicTracks.length - 1;
-  selectTrack(prev);
-  showToast('Track anterior ⏮');
-}
-function shuffleTrack() {
-  if (!musicTracks.length) return;
-  let randomIndex = currentTrackIndex;
-  while (randomIndex === currentTrackIndex && musicTracks.length > 1) {
-    randomIndex = Math.floor(Math.random() * musicTracks.length);
-  }
-  selectTrack(randomIndex);
-  showToast('Shuffle 🔀');
-}
-
-/* PLAYLIST MENU */
-function generateMusicList() {
-  const list = document.getElementById('music-list');
-  list.innerHTML = '';
-  musicTracks.forEach((track, index) => {
-    const thumbUrl = 'https://img.youtube.com/vi/' + track.id + '/mqdefault.jpg';
-    const item = document.createElement('div');
-    item.className = 'music-item';
-    item.innerHTML = `
-      <div class="music-icon">▶</div>
-      <div class="music-thumb">
-        <img src="${thumbUrl}" alt="Portada">
-      </div>
-      <span class="music-title">
-        ${track.title}
-        <span class="music-genre">${track.genre}</span>
-      </span>
-      <span class="music-duration">${durations[index] || ''}</span>
-    `;
-    item.addEventListener('click', () => selectTrack(index));
-    list.appendChild(item);
-  });
-
-  if (musicTracks.length > 0) {
-    currentTrackIndex = 0;
-    updateActiveTrack();
-    updateNowPlaying();
-  }
-}
-
-/* VIDEO FILTERS */
-function getUniqueGenres() {
-  const set = new Set();
-  musicTracks.forEach(t => { if (t.genre) set.add(t.genre); });
-  return Array.from(set);
-}
-function generateVideoFilters() {
-  const container = document.getElementById('video-filters');
-  if (!container) return;
-  container.innerHTML = '';
-
-  const genres = getUniqueGenres();
-
-  const createBtn = (label, value, isActive = false) => {
-    const btn = document.createElement('button');
-    btn.className = 'video-filter-btn' + (isActive ? ' active' : '');
-    btn.textContent = label;
-    btn.dataset.genre = value;
-    btn.addEventListener('click', () => {
-      document.querySelectorAll('.video-filter-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      generateVideoEmbeds('videos-full-list', value);
-    });
-    container.appendChild(btn);
-  };
-
-  createBtn('Todo', 'all', true);
-  genres.forEach(g => createBtn(g, g, false));
-}
-function generateVideoEmbeds(containerId, genreFilter = 'all') {
-  const list = document.getElementById(containerId);
-  if (!list) return;
-  list.innerHTML = '';
-
-  let idx = 0;
-  musicTracks.forEach(track => {
-    if (genreFilter !== 'all' && track.genre !== genreFilter) return;
-
-    const item = document.createElement('div');
-    item.className = 'video-item';
-    item.style.animationDelay = (idx * 0.1) + 's';
-    item.innerHTML = `
-      <h3>${track.title}</h3>
-      <div class="video-genre">${track.genre}</div>
-      <div class="video-embed">
-        <iframe src="https://www.youtube.com/embed/${track.id}?enablejsapi=1&rel=0" allowfullscreen></iframe>
-      </div>
-    `;
-    list.appendChild(item);
-    idx++;
-  });
-}
-
-/* MENU */
-function toggleMenu() {
-  const menu = document.getElementById('menu-container');
-  const toggle = document.getElementById('menu-toggle');
-  const overlay = document.getElementById('menu-overlay');
-  menu.classList.toggle('open');
-  toggle.classList.toggle('open');
-  overlay.classList.toggle('open');
-}
-function closeMenu() {
-  const menu = document.getElementById('menu-container');
-  const toggle = document.getElementById('menu-toggle');
-  const overlay = document.getElementById('menu-overlay');
-  menu.classList.remove('open');
-  toggle.classList.remove('open');
-  overlay.classList.remove('open');
-}
-
-/* VIDEOS FULL */
-function openVideos() {
-  document.querySelector('.main-content').classList.add('hidden');
-  document.getElementById('videos-full').classList.add('open');
-  generateVideoFilters();
-  generateVideoEmbeds('videos-full-list', 'all');
-}
-function closeVideos() {
-  document.getElementById('videos-full').classList.remove('open');
-  document.querySelector('.main-content').classList.remove('hidden');
-}
-
-/* CONFIG SENSI */
-const configs = {
-  'samsung-s24': { sensi: {g:145,p:160,x2:155,x4:140,f:125,c:130}, dpi: 888, boton: {lado:'derecha', tam:70, op:85} },
-  'samsung-s23': { sensi: {g:142,p:158,x2:152,x4:138,f:122,c:128}, dpi: 888, boton: {lado:'derecha', tam:70, op:85} },
-  'samsung-a73': { sensi: {g:130,p:145,x2:140,x4:130,f:115,c:120}, dpi: 788, boton: {lado:'derecha', tam:75, op:80} },
-  'samsung-a55': { sensi: {g:125,p:138,x2:132,x4:122,f:105,c:110}, dpi: 788, boton: {lado:'derecha', tam:75, op:80} },
-  'samsung-a34': { sensi: {g:110,p:125,x2:120,x4:110,f:95,c:100}, dpi: 488, boton: {lado:'derecha', tam:80, op:75} },
-  'samsung-z-fold5': { sensi: {g:150,p:165,x2:160,x4:145,f:130,c:135}, dpi: 888, boton: {lado:'derecha', tam:65, op:90} },
-  'iphone-15': { sensi: {g:150,p:165,x2:160,x4:145,f:130,c:135}, dpi: 411, boton: {lado:'derecha', tam:65, op:90} },
-  'iphone-16': { sensi: {g:155,p:170,x2:165,x4:150,f:135,c:140}, dpi: 411, boton: {lado:'derecha', tam:65, op:90} },
-  'iphone-13': { sensi: {g:135,p:150,x2:145,x4:135,f:120,c:125}, dpi: 411, boton: {lado:'derecha', tam:68, op:88} },
-  'iphone-14': { sensi: {g:140,p:155,x2:150,x4:135,f:120,c:125}, dpi: 411, boton: {lado:'derecha', tam:68, op:88} },
-  'poco-x6': { sensi: {g:148,p:162,x2:158,x4:143,f:128,c:132}, dpi: 888, boton: {lado:'derecha', tam:68, op:87} },
-  'xiaomi-14': { sensi: {g:152,p:167,x2:162,x4:147,f:132,c:137}, dpi: 888, boton: {lado:'derecha', tam:65, op:88} },
-  'mi11-lite': { sensi: {g:155,p:170,x2:165,x4:150,f:135,c:140}, dpi: 888, boton: {lado:'derecha', tam:66, op:90} },
-  'redmi-note12': { sensi: {g:128,p:140,x2:135,x4:125,f:110,c:115}, dpi: 788, boton: {lado:'derecha', tam:76, op:78} },
-  'redmi-note13': { sensi: {g:132,p:144,x2:138,x4:128,f:112,c:118}, dpi: 788, boton: {lado:'derecha', tam:74, op:79} },
-  'redmi-note8': { sensi: {g:175,p:150,x2:150,x4:180,f:120,c:200}, dpi: 788, boton: {lado:'derecha', tam:82, op:70} },
-  'redmi-9': { sensi: {g:105,p:115,x2:110,x4:100,f:85,c:90}, dpi: 488, boton: {lado:'derecha', tam:85, op:65} },
-  'moto-g84': { sensi: {g:138,p:152,x2:148,x4:135,f:118,c:125}, dpi: 788, boton: {lado:'derecha', tam:72, op:82} },
-  'moto-g54': { sensi: {g:120,p:132,x2:128,x4:118,f:100,c:108}, dpi: 588, boton: {lado:'derecha', tam:78, op:75} },
-  'moto-edge50': { sensi: {g:145,p:160,x2:155,x4:140,f:125,c:130}, dpi: 888, boton: {lado:'derecha', tam:70, op:85} },
-  'realme-11': { sensi: {g:150,p:165,x2:160,x4:135,f:130,c:135}, dpi: 888, boton: {lado:'derecha', tam:67, op:88} },
-  'realme-12': { sensi: {g:152,p:167,x2:162,x4:137,f:132,c:137}, dpi: 888, boton: {lado:'derecha', tam:66, op:89} },
-  'realme-c55': { sensi: {g:112,p:125,x2:120,x4:108,f:92,c:98}, dpi: 488, boton: {lado:'derecha', tam:80, op:72} },
-  'huawei-p60': { sensi: {g:145,p:160,x2:155,x4:140,f:125,c:130}, dpi: 888, boton: {lado:'derecha', tam:68, op:85} },
-  'huawei-mate60': { sensi: {g:148,p:162,x2:158,x4:143,f:128,c:132}, dpi: 888, boton: {lado:'derecha', tam:68, op:87} },
-  'huawei-nova10': { sensi: {g:130,p:145,x2:140,x4:130,f:115,c:120}, dpi: 788, boton: {lado:'derecha', tam:75, op:80} },
-  'oppo-reno8': { sensi: {g:140,p:155,x2:150,x4:135,f:120,c:125}, dpi: 888, boton: {lado:'derecha', tam:70, op:87} },
-  'oppo-findx7': { sensi: {g:155,p:170,x2:165,x4:150,f:135,c:140}, dpi: 988, boton: {lado:'derecha', tam:65, op:90} },
-  'oppo-a78': { sensi: {g:115,p:130,x2:125,x4:115,f:100,c:105}, dpi: 588, boton: {lado:'derecha', tam:78, op:75} },
-  'pixel-9': { sensi: {g:150,p:165,x2:160,x4:145,f:130,c:135}, dpi: 888, boton: {lado:'derecha', tam:65, op:90} },
-  'pixel-8': { sensi: {g:145,p:160,x2:155,x4:140,f:125,c:130}, dpi: 888, boton: {lado:'derecha', tam:68, op:88} },
-  'oneplus-12': { sensi: {g:152,p:167,x2:162,x4:147,f:132,c:137}, dpi: 888, boton: {lado:'derecha', tam:66, op:89} },
-  'oneplus-11': { sensi: {g:148,p:162,x2:158,x4:143,f:128,c:132}, dpi: 888, boton: {lado:'derecha', tam:68, op:87} },
-  'xperia-1-vi': { sensi: {g:155,p:170,x2:165,x4:150,f:135,c:140}, dpi: 988, boton: {lado:'derecha', tam:65, op:90} },
-  'xperia-5-v': { sensi: {g:140,p:155,x2:150,x4:135,f:120,c:125}, dpi: 888, boton: {lado:'derecha', tam:70, op:87} },
-  'generic-high': { sensi: {g:142,p:158,x2:152,x4:138,f:122,c:128}, dpi: 888, boton: {lado:'derecha', tam:70, op:85} },
-  'generic-mid': { sensi: {g:125,p:138,x2:132,x4:122,f:105,c:110}, dpi: 788, boton: {lado:'derecha', tam:75, op:80} },
-  'generic-low': { sensi: {g:105,p:118,x2:112,x4:100,f:85,c:90}, dpi: 488, boton: {lado:'derecha', tam:85, op:70} },
-  'generic-ultra': { sensi: {g:155,p:170,x2:165,x4:150,f:135,c:140}, dpi: 988, boton: {lado:'derecha', tam:65, op:90} }
-};
-
-const mods = {
-  estilo: {
-    rush: {g:15,p:20,x2:18,x4:15,f:10,c:25, boton:{tam:5, op:-5}},
-    equilibrado: {g:0,p:0,x2:0,x4:0,f:0,c:0, boton: {tam:0, op:0}},
-    camper: {g:-10,p:-15,x2:-12,x4:-10,f:5,c:-20, boton:{tam:8, op:10}},
-    headshot: {g:-5,p:10,x2:8,x4:5,f:15,c:-10, boton:{tam:-6, op:5}}
-  },
-  experiencia: {
-    principiante: {g:-15,p:-20,x2:-18,x4:-15,f:-20,c:-25, boton:{tam:10, op:-10}},
-    intermedio: {g:0,p:0,x2:0,x4:0,f:0,c:0, boton: {tam:0, op:0}},
-    avanzado: {g:10,p:12,x2:10,x4:8,f:10,c:15, boton:{tam:-3, op:3}},
-    pro: {g:20,p:25,x2:22,x4:18,f:20,c:30, boton:{tam:-8, op:8}}
-  },
-  competitivo: {
-    casual: {g:0,p:0,x2:0,x4:0,f:0,c:0, boton:{tam:0, op:0}},
-    ranked: {g:5,p:7,x2:6,x4:5,f:6,c:8, boton:{tam:-2, op:3}},
-    torneo: {g:10,p:12,x2:11,x4:9,f:10,c:15, boton:{tam:-4, op:5}}
-  }
-};
-
-/* TOAST */
-function showToast(message = "¡Copiado!") {
-  const toast = document.getElementById('toast');
-  toast.textContent = message;
-  toast.classList.add('show');
-  setTimeout(() => {
-    toast.classList.remove('show');
-  }, 2000);
-}
-function copiar(valor) {
-  navigator.clipboard.writeText(valor.toString());
-  showToast('¡' + valor + ' copiado!');
-}
-
-/* COPIAR CONFIG */
-function copiarTodo() {
-  const listaValores = Array.from(document.querySelectorAll('#configuracion-lista .sensibilidad-item span:last-child'))
-    .map(s => s.textContent.trim().split(' ')[0]);
-  if (!listaValores.length) {
-    showToast('Genera una sensi primero');
-    return;
-  }
-
-  const modelo = document.getElementById('modelo-celular').value;
-  const botonTexto = document.getElementById('boton-lado').textContent + ' | ' +
-                     document.getElementById('boton-tamano').textContent + ' | ' +
-                     document.getElementById('boton-opacidad').textContent + '%';
-
-  let texto = 'Modelo: ' + modelo + '\\nSensi: ' + listaValores.join(' | ') + '\\nBotón: ' + botonTexto;
-  navigator.clipboard.writeText(texto);
-  showToast('¡Configuración completa copiada!');
-}
-
-function copiarWhatsApp() {
-  const listaValores = Array.from(document.querySelectorAll('#configuracion-lista .sensibilidad-item span:last-child'))
-    .map(s => s.textContent.trim().split(' ')[0]);
-  if (listaValores.length < 6) {
-    showToast('Genera una sensi primero');
-    return;
-  }
-
-  const modeloSel = document.getElementById('modelo-celular');
-  const estiloSel = document.getElementById('estilo-juego');
-  const expSel = document.getElementById('nivel-experiencia');
-  const compSel = document.getElementById('modo-competitivo');
-
-  const modeloTexto = modeloSel.options[modeloSel.selectedIndex].text;
-  const estiloTexto = estiloSel.options[estiloSel.selectedIndex].text;
-  const expTexto = expSel.options[expSel.selectedIndex].text;
-  const compTexto = compSel.options[compSel.selectedIndex].text;
-
-  const dpi = document.getElementById('dpi-valor').textContent || '-';
-  const botonLado = document.getElementById('boton-lado').textContent || '-';
-  const botonTam = document.getElementById('boton-tamano').textContent || '-';
-  const botonOp = document.getElementById('boton-opacidad').textContent || '-';
-
-  const texto =
-`📱 CALMATEX SENSI
-📌 Modelo: ${modeloTexto}
-🎮 Estilo: ${estiloTexto} | ${expTexto} | ${compTexto}
-🎯 General: ${listaValores[0]} | Precisión: ${listaValores[1]} | x2: ${listaValores[2]} | x4: ${listaValores[3]} | Franco: ${listaValores[4]} | Cámara: ${listaValores[5]}
-🖱 DPI: ${dpi}
-🔘 Botón: ${botonLado} | Tamaño: ${botonTam} | Opacidad: ${botonOp}%`;
-
-  navigator.clipboard.writeText(texto);
-  showToast('Formato WhatsApp copiado');
-}
-
-/* PRESETS */
-function loadPresetsFromStorage() {
-  try {
-    const raw = localStorage.getItem(PRESETS_KEY);
-    presets = raw ? JSON.parse(raw) : [];
-  } catch (e) {
-    console.error('Error leyendo presets', e);
-    presets = [];
-  }
-}
-function savePresetsToStorage() {
-  try {
-    localStorage.setItem(PRESETS_KEY, JSON.stringify(presets));
-  } catch (e) {
-    console.error('Error guardando presets', e);
-  }
-}
-function renderPresets() {
-  const section = document.getElementById('presets-section');
-  const list = document.getElementById('presets-list');
-  if (!section || !list) return;
-
-  if (!presets.length) {
-    section.style.display = 'none';
-    list.innerHTML = '';
-    return;
-  }
-
-  section.style.display = 'block';
-  list.innerHTML = '';
-
-  presets.forEach(preset => {
-    const div = document.createElement('div');
-    div.className = 'preset-item';
-
-    const fecha = new Date(preset.createdAt || preset.id).toLocaleString('es-PE', {
-      day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit'
-    });
-
-    div.innerHTML = `
-      <div class="preset-name">
-        <strong>${preset.nombre}</strong>
-        <div class="preset-meta">${fecha}</div>
-      </div>
-      <div class="preset-actions">
-        <button data-id="${preset.id}" data-action="aplicar">Aplicar</button>
-        <button data-id="${preset.id}" data-action="eliminar">Eliminar</button>
-      </div>
-    `;
-
-    const actions = div.querySelector('.preset-actions');
-    actions.addEventListener('click', (e) => {
-      const btn = e.target.closest('button');
-      if (!btn) return;
-      const id = Number(btn.getAttribute('data-id'));
-      const action = btn.getAttribute('data-action');
-      if (action === 'aplicar') {
-        applyPreset(id);
-      } else if (action === 'eliminar') {
-        deletePreset(id);
-      }
-    });
-
-    list.appendChild(div);
-  });
-}
-function guardarPresetActual() {
-  const resultado = document.getElementById('resultado');
-  if (!resultado || resultado.style.display === 'none') {
-    showToast('Primero genera una sensi');
-    return;
-  }
-
-  const modeloSel = document.getElementById('modelo-celular');
-  const estiloSel = document.getElementById('estilo-juego');
-  const expSel = document.getElementById('nivel-experiencia');
-  const compSel = document.getElementById('modo-competitivo');
-
-  const modelo = modeloSel.value;
-  const estilo = estiloSel.value;
-  const experiencia = expSel.value;
-  const competitivo = compSel.value;
-
-  const modeloTexto = modeloSel.options[modeloSel.selectedIndex].text;
-  const estiloTexto = estiloSel.options[estiloSel.selectedIndex].text;
-  const expTexto = expSel.options[expSel.selectedIndex].text;
-  const compTexto = compSel.options[compSel.selectedIndex].text;
-
-  const nombre = `${modeloTexto} | ${estiloTexto} | ${expTexto}`;
-
-  const preset = {
-    id: Date.now(),
-    modelo,
-    estilo,
-    experiencia,
-    competitivo,
-    nombre,
-    createdAt: new Date().toISOString()
-  };
-
-  presets.unshift(preset);
-  if (presets.length > 25) presets = presets.slice(0, 25);
-
-  savePresetsToStorage();
-  renderPresets();
-  showToast('Preset guardado');
-}
-function applyPreset(id) {
-  const preset = presets.find(p => p.id === id);
-  if (!preset) return;
-
-  document.getElementById('modelo-celular').value = preset.modelo;
-  document.getElementById('estilo-juego').value = preset.estilo;
-  document.getElementById('nivel-experiencia').value = preset.experiencia;
-  document.getElementById('modo-competitivo').value = preset.competitivo;
-
-  generarSensi();
-  showToast('Preset aplicado');
-}
-function deletePreset(id) {
-  presets = presets.filter(p => p.id !== id);
-  savePresetsToStorage();
-  renderPresets();
-  showToast('Preset eliminado');
-}
-
-/* GENERAR SENSI */
-function generarSensi() {
-  const modelo = document.getElementById('modelo-celular').value;
-  const estilo = document.getElementById('estilo-juego').value;
-  const experiencia = document.getElementById('nivel-experiencia').value;
-  const competitivo = document.getElementById('modo-competitivo').value;
-
-  const base = configs[modelo];
-  if (!base) return;
-
-  const modEstilo = mods.estilo[estilo];
-  const modExp = mods.experiencia[experiencia];
-  const modComp = mods.competitivo[competitivo];
-
-  const finalSensi = {};
-  const keys = ['g','p','x2','x4','f','c'];
-
-  keys.forEach(k => {
-    const raw =
-      base.sensi[k] +
-      (modEstilo?.[k] || 0) +
-      (modExp?.[k] || 0) +
-      (modComp?.[k] || 0);
-    finalSensi[k] = Math.max(0, Math.min(200, Math.round(raw)));
-  });
-
-  const baseBoton = base.boton;
-  const botonTam = Math.max(40, Math.min(100,
-    baseBoton.tam +
-    (modEstilo.boton?.tam || 0) +
-    (modExp.boton?.tam || 0) +
-    (modComp.boton?.tam || 0)
-  ));
-  const botonOp = Math.max(20, Math.min(100,
-    baseBoton.op +
-    (modEstilo.boton?.op || 0) +
-    (modExp.boton?.op || 0) +
-    (modComp.boton?.op || 0)
-  ));
-
-  document.getElementById('dpi-info').style.display = 'block';
-  document.getElementById('dpi-valor').textContent = base.dpi;
-
-  document.getElementById('boton-info').style.display = 'block';
-  document.getElementById('boton-lado').textContent = baseBoton.lado.toUpperCase();
-  document.getElementById('boton-tamano').textContent = botonTam;
-  document.getElementById('boton-opacidad').textContent = botonOp;
-
-  const hudInfo = document.getElementById('hud-info');
-  hudInfo.style.display = 'block';
-  if (estilo === 'rush') {
-    hudInfo.textContent = 'HUD recomendado: botones cerca del pulgar derecho, mira y agacharse accesibles para rush.';
-  } else if (estilo === 'headshot') {
-    hudInfo.textContent = 'HUD recomendado: botón de disparo más alto, cómodo para arrastrar hacia la cabeza.';
-  } else if (estilo === 'camper') {
-    hudInfo.textContent = 'HUD recomendado: prioriza comodidad y visión, botones un poco más alejados.';
-  } else {
-    hudInfo.textContent = 'HUD equilibrado: mezcla entre control rápido y comodidad en todas las posiciones.';
-  }
-
-  const lista = document.getElementById('configuracion-lista');
-  lista.innerHTML = '';
-
-  const nombres = [
-    { key: 'g', label: 'General' },
-    { key: 'p', label: 'Precisión' },
-    { key: 'x2', label: 'Mira x2' },
-    { key: 'x4', label: 'Mira x4' },
-    { key: 'f', label: 'Francotirador' },
-    { key: 'c', label: 'Cámara' }
-  ];
-
-  nombres.forEach(({key, label}, i) => {
-    const item = document.createElement('div');
-    item.className = 'sensibilidad-item';
-    item.style.animationDelay = (i * 0.05) + 's';
-    item.innerHTML = `
-      <span>${label}</span>
-      <span>${finalSensi[key]}
-        <button class="copy-btn" type="button">COPIAR</button>
-      </span>
-    `;
-    const btn = item.querySelector('.copy-btn');
-    btn.addEventListener('click', () => copiar(finalSensi[key]));
-    lista.appendChild(item);
-    requestAnimationFrame(() => item.classList.add('reveal'));
-  });
-
-  const xitada = document.getElementById('sensi-xitada');
-  const xitadaLista = document.getElementById('sensi-xitada-lista');
-  const packBrLista = document.getElementById('pack-br-lista');
-
-  xitada.style.display = 'block';
-  xitada.classList.add('xitado-active');
-
-  const xitadaPresets = {
-    g: Math.min(200, finalSensi.g + 25),
-    p: Math.min(200, finalSensi.p + 20),
-    x2: Math.min(200, finalSensi.x2 + 22),
-    x4: Math.min(200, finalSensi.x4 + 18),
-    f: Math.min(200, finalSensi.f + 18),
-    c: Math.min(200, finalSensi.c + 25)
-  };
-
-  xitadaLista.innerHTML = '';
-  Object.entries(xitadaPresets).forEach(([k,val], i) => {
-    const label = nombres.find(n => n.key === k)?.label || k;
-    const item = document.createElement('div');
-    item.className = 'sensibilidad-item';
-    item.style.animationDelay = (i * 0.05) + 's';
-    item.innerHTML = `
-      <span>${label}</span>
-      <span>${val}</span>
-    `;
-    xitadaLista.appendChild(item);
-    requestAnimationFrame(() => item.classList.add('reveal'));
-  });
-
-  packBrLista.innerHTML = `
-    <div class="pack-br-item">🔥 General: ${Math.min(200, xitadaPresets.g + 5)}</div>
-    <div class="pack-br-item">🎯 Mira x2: ${Math.min(200, xitadaPresets.x2 + 3)}</div>
-    <div class="pack-br-item">💥 Mira x4: ${Math.min(200, xitadaPresets.x4 + 3)}</div>
-    <div class="pack-br-item">🎯 Franco: ${Math.min(200, xitadaPresets.f + 2)}</div>
-  `;
-
-  document.getElementById('resultado').style.display = 'block';
-
-  const copiarXitadaBtn = document.getElementById('copiar-xitada-btn');
-  copiarXitadaBtn.onclick = () => {
-    const txt = Object.values(xitadaPresets).join(' | ');
-    navigator.clipboard.writeText(txt);
-    showToast('¡Sensi Xitada copiada!');
-  };
-}
-
-/* FONDO ANIMADO */
-const bgAnimation = document.getElementById('bg-animation');
-const particleCount = window.innerWidth < 768 ? 40 : 80;
-for (let i = 0; i < particleCount; i++) {
-  const p = document.createElement('div');
-  p.classList.add('particle');
-  p.style.width = (Math.random() * 4 + 1) + 'px';
-  p.style.height = p.style.width;
-  p.style.left = (Math.random() * 100) + '%';
-  p.style.animationDelay = (Math.random() * 6) + 's';
-  p.style.animationDuration = (Math.random() * 8 + 4) + 's';
-  bgAnimation.appendChild(p);
-}
-for (let i = 0; i < 5; i++) {
-  const line = document.createElement('div');
-  line.classList.add('line');
-  line.style.top = (Math.random() * 100) + '%';
-  line.style.animationDelay = (Math.random() * 4) + 's';
-  line.style.animationDuration = (Math.random() * 3 + 3) + 's';
-  bgAnimation.appendChild(line);
-}
-
-/* PLAYER READY */
-function onPlayerReady(event) {
-  generateMusicList();
-  generateVideoEmbeds('videos-list');
-
-  const musicToggle = document.getElementById('music-toggle');
-  const musicIcon = document.getElementById('music-icon');
-  const musicTriggerArea = document.querySelector('.music-trigger-area');
-  const volumeControl = document.getElementById('volume-control');
-  const volumeSlider = document.getElementById('volume-slider');
-
-  const btnPrev = document.getElementById('prev-track');
-  const btnNext = document.getElementById('next-track');
-  const btnShuffle = document.getElementById('shuffle-track');
-  const toggleLyricsBtn = document.getElementById('toggle-lyrics');
-  const closeLyricsBtn = document.getElementById('close-lyrics');
-
-  musicIcon.innerHTML = pauseIcon;
-  musicToggle.setAttribute('aria-pressed', 'true');
-  player.setVolume(50);
-  volumeSlider.value = 50;
-  currentTrackIndex = 0;
-  updateActiveTrack();
-  updateNowPlaying();
-  updatePlayButtonThumb();
-
-  let hideTimeout;
-  function showButton() {
-    musicToggle.classList.remove('hidden');
-    volumeControl.classList.remove('hidden');
-    clearTimeout(hideTimeout);
-    hideTimeout = setTimeout(() => {
-      musicToggle.classList.add('hidden');
-      volumeControl.classList.add('hidden');
-    }, 3000);
-  }
-  function resetHideTimeout() {
-    clearTimeout(hideTimeout);
-    hideTimeout = setTimeout(() => {
-      musicToggle.classList.add('hidden');
-      volumeControl.classList.add('hidden');
-    }, 3000);
-  }
-
-  musicTriggerArea.addEventListener('mouseenter', showButton);
-  musicToggle.addEventListener('mouseenter', resetHideTimeout);
-  volumeControl.addEventListener('mouseenter', resetHideTimeout);
-
-  volumeSlider.addEventListener('input', function () {
-    player.setVolume(volumeSlider.value);
-    resetHideTimeout();
-  });
-
-  musicToggle.addEventListener('click', function () {
-    if (isPlaying) {
-      player.pauseVideo();
-    } else {
-      if (currentTrackIndex >= 0) {
-        player.playVideo();
-      }
-    }
-    resetHideTimeout();
-  });
-
-  btnPrev.addEventListener('click', () => {
-    prevTrack();
-    resetHideTimeout();
-  });
-  btnNext.addEventListener('click', () => {
-    nextTrack();
-    resetHideTimeout();
-  });
-  btnShuffle.addEventListener('click', () => {
-    shuffleTrack();
-    resetHideTimeout();
-  });
-
-  toggleLyricsBtn.addEventListener('click', () => {
-    const panel = document.getElementById('lyrics-panel');
-    if (panel.classList.contains('open')) {
-      closeLyricsPanel();
-    } else if (currentTrackIndex >= 0) {
-      const track = musicTracks[currentTrackIndex];
-      openLyricsPanelForTrack(track);
-    }
-  });
-  closeLyricsBtn.addEventListener('click', closeLyricsPanel);
-
-  hideTimeout = setTimeout(() => {
-    musicToggle.classList.add('hidden');
-    volumeControl.classList.add('hidden');
-  }, 3000);
-
-  document.getElementById('menu-toggle').addEventListener('click', toggleMenu);
-  document.getElementById('menu-overlay').addEventListener('click', closeMenu);
-  document.getElementById('btn-videos').addEventListener('click', openVideos);
-  document.getElementById('close-videos').addEventListener('click', closeVideos);
-
-  document.getElementById('generar-sensibilidad').addEventListener('click', () => {
-    const btn = document.getElementById('generar-sensibilidad');
-    btn.classList.add('loading');
-    setTimeout(() => {
-      generarSensi();
-      btn.classList.remove('loading');
-    }, 400);
-  });
-  document.getElementById('copiar-todo-btn').addEventListener('click', copiarTodo);
-  document.getElementById('copiar-whatsapp-btn').addEventListener('click', copiarWhatsApp);
-  document.getElementById('guardar-preset-btn').addEventListener('click', guardarPresetActual);
-
-  loadPresetsFromStorage();
-  renderPresets();
-}
-
-/* ICONO PLAY DEFAULT */
-window.addEventListener('load', () => {
-  const musicIcon = document.getElementById('music-icon');
-  if (musicIcon) musicIcon.innerHTML = playIcon;
-});
+const _l=load;
+load=function(i){_l(i);syncDl()};
+
+refresh();
+})();
 </script>
 </body>
 </html>
